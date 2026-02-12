@@ -70,6 +70,25 @@ app.post('/delete-job', async (req, res) => {
   res.redirect('/jobs');
 });
 
+app.post('/update-job', async (req, res) => {
+  const { id, customer, jobtype, duetime } = req.body;
+
+  const { error } = await supabase
+    .from('jobs')
+    .update({
+      customer,
+      jobtype,
+      duetime
+    })
+    .eq('id', id);
+
+  if (error) {
+    console.error(error);
+    return res.send("แก้ไขไม่สำเร็จ");
+  }
+
+  res.redirect('/jobs');
+});
 
 
 // ดูงานทั้งหมด
@@ -109,7 +128,16 @@ app.get('/jobs', async (req, res) => {
             <button type="submit">เปลี่ยนสถานะ</button>
             </form>
   
+
+
+            
 <form method="POST" action="/delete-job" style="margin-top:10px;">
+
+<a href="/edit/${job.id}" 
+   style="display:inline-block;margin-top:8px;color:#38bdf8;">
+   แก้ไขงาน
+</a>
+
   <input type="hidden" name="id" value="${job.id}">
   <button style="background:#e74c3c;color:white;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;">
     ลบงาน
@@ -139,6 +167,42 @@ app.get('/jobs', async (req, res) => {
     </body>
     </html>
     `);
+});
+
+//แสดงหน้าแก้ไข
+app.get('/edit/:id', async (req, res) => {
+  const { data: job, error } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('id', req.params.id)
+    .single();
+
+  if (error) return res.send("ไม่พบข้อมูล");
+
+  res.send(`
+    <html>
+    <body style="background:#0f172a;color:white;font-family:Arial;padding:30px;">
+      <h2>แก้ไขงาน</h2>
+      <form method="POST" action="/update-job">
+        <input type="hidden" name="id" value="${job.id}" />
+
+        ชื่อลูกค้า:<br>
+        <input name="customer" value="${job.customer}" /><br><br>
+
+        ประเภทงาน:<br>
+        <input name="jobtype" value="${job.jobtype}" /><br><br>
+
+        วันเวลา:<br>
+        <input type="datetime-local" 
+               name="duetime" 
+               value="${new Date(job.duetime).toISOString().slice(0,16)}" />
+        <br><br>
+
+        <button type="submit">บันทึก</button>
+      </form>
+    </body>
+    </html>
+  `);
 });
 
 
@@ -270,7 +334,7 @@ app.get('/', (req, res) => {
 
 const cron = require('node-cron');
 
-cron.schedule('* * * * *', async () => {
+/*cron.schedule('* * * * *', async () => {
     const now = new Date();
 
     const { data: jobs, error } = await supabase
@@ -299,6 +363,39 @@ cron.schedule('* * * * *', async () => {
                 .eq('id', job.id);
         }
     }
+});*/
+app.get('/api/check-reminder', async (req, res) => {
+
+  const now = new Date();
+
+  const { data: jobs, error } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('notified', false);
+
+  if (error) {
+    console.error(error);
+    return res.send("error");
+  }
+
+  for (let job of jobs) {
+    const due = new Date(job.duetime);
+    const diffMinutes = (due - now) / 60000;
+
+    if (diffMinutes <= 60 && diffMinutes > 59) {
+
+      await sendLineMessage(
+        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString()}`
+      );
+
+      await supabase
+        .from('jobs')
+        .update({ notified: true })
+        .eq('id', job.id);
+    }
+  }
+
+  res.send("checked");
 });
 
 
