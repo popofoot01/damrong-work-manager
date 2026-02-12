@@ -382,7 +382,7 @@ app.get('/api/check-reminder', async (req, res) => {
     const due = new Date(job.duetime);
     const diffMinutes = (due - now) / 60000;
 
-    if (diffMinutes <= 60 && diffMinutes > 59) {
+    if (diffMinutes <= 60 && diffMinutes >= 55) {
 
       await sendLineMessage(
         `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString()}`
