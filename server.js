@@ -90,6 +90,41 @@ app.post('/update-job', async (req, res) => {
   res.redirect('/jobs');
 });
 
+//แจ้งเตือน
+app.get('/api/check-reminder', async (req, res) => {
+
+  const now = new Date();
+
+  const { data: jobs, error } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('notified', false);
+
+  if (error) {
+    console.error(error);
+    return res.send("error");
+  }
+
+  for (let job of jobs) {
+    const due = new Date(job.duetime);
+    const diffMinutes = (due - now) / 60000;
+
+    if (diffMinutes <= 60 && diffMinutes >= 55) {
+
+      await sendLineMessage(
+        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString()}`
+      );
+
+      await supabase
+        .from('jobs')
+        .update({ notified: true })
+        .eq('id', job.id);
+    }
+  }
+
+  res.send("checked");
+});
+
 
 // ดูงานทั้งหมด
 app.get('/jobs', async (req, res) => {
@@ -364,39 +399,7 @@ const cron = require('node-cron');
         }
     }
 });*/
-app.get('/api/check-reminder', async (req, res) => {
 
-  const now = new Date();
-
-  const { data: jobs, error } = await supabase
-    .from('jobs')
-    .select('*')
-    .eq('notified', false);
-
-  if (error) {
-    console.error(error);
-    return res.send("error");
-  }
-
-  for (let job of jobs) {
-    const due = new Date(job.duetime);
-    const diffMinutes = (due - now) / 60000;
-
-    if (diffMinutes <= 60 && diffMinutes >= 55) {
-
-      await sendLineMessage(
-        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString()}`
-      );
-
-      await supabase
-        .from('jobs')
-        .update({ notified: true })
-        .eq('id', job.id);
-    }
-  }
-
-  res.send("checked");
-});
 
 
 app.listen(3000, () => {
