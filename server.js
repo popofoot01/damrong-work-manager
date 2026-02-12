@@ -54,6 +54,21 @@ app.post('/update-status', async (req, res) => {
     res.redirect('/jobs');
 });
 
+app.post('/delete-job', async (req, res) => {
+  const { id } = req.body;
+
+  const { error } = await supabase
+    .from('jobs')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.log(error);
+    return res.send("ลบไม่สำเร็จ");
+  }
+
+  res.redirect('/jobs');
+});
 
 
 
@@ -94,6 +109,15 @@ app.get('/jobs', async (req, res) => {
             <button type="submit">เปลี่ยนสถานะ</button>
             </form>
   
+<form method="POST" action="/delete-job" style="margin-top:10px;">
+  <input type="hidden" name="id" value="${job.id}">
+  <button style="background:#e74c3c;color:white;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;">
+    ลบงาน
+  </button>
+</form>
+
+
+
             </div>
         `;
     }).join("");
