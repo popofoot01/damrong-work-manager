@@ -825,96 +825,116 @@ app.get('/test', async (req, res) => {
 //ปรับแต่งหน้าเพิ่มงาน
 app.get('/', (req, res) => {
     res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>ดำรงค์อิงค์เจ็ท - Work Manager</title>
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: #0f172a;
-                color: white;
-                display: flex;
-                justify-content: center;
-                padding: 40px;
-            }
-            .container {
-                background: #1e293b;
-                padding: 30px;
-                border-radius: 15px;
-                width: 400px;
-                box-shadow: 0 0 20px rgba(0,0,0,0.5);
-            }
-            h1 {
-                text-align: center;
-                margin-bottom: 20px;
-            }
-            label {
-                font-size: 14px;
-            }
-            input, select {
-                width: 100%;
-                padding: 8px;
-                margin-top: 5px;
-                margin-bottom: 15px;
-                border-radius: 8px;
-                border: none;
-            }
-            button {
-                width: 100%;
-                padding: 10px;
-                border: none;
-                border-radius: 10px;
-                background: #2563eb;
-                color: white;
-                font-weight: bold;
-                cursor: pointer;
-            }
-            button:hover {
-                background: #1d4ed8;
-            }
-            a {
-                color: #38bdf8;
-                display: block;
-                text-align: center;
-                margin-top: 15px;
-            }
-        </style>
-    </head>
-    <body>
-        <div class="container">
-            <h1>ดำรงค์อิงค์เจ็ท</h1>
-            <form method="POST" action="/add-job">
-                <label>ชื่อลูกค้า</label>
-                <input name="customer" required />
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>เพิ่มงาน</title>
 
-                <label>ประเภทงาน</label>
-                <select name="jobType">
-                    <option>ไวนิล</option>
-                    <option>กล่องไฟ</option>
-                    <option>ตัวอักษร</option>
-                    <option>สแตนดี้</option>
-                    <option>สติ๊กเกอร์</option>
-                    <option>ติดตั้ง</option>
-                    <option>ฟิวเจอร์บอร์ด</option>
-                    <option>ตรายาง</option>
-                </select>
+<style>
+body {
+  background:#0f172a;
+  font-family:Arial;
+  color:white;
+  margin:0;
+}
 
-                รายละเอียดเพิ่มเติม:<br>
-                <textarea name="note" rows="3" style="width:100%;"></textarea>
-                <br><br>
+.form-container{
+  max-width:500px;
+  margin:auto;
+  padding:20px;
+}
 
+h2{
+  text-align:center;
+  margin-bottom:25px;
+}
 
-                <label>วันและเวลาส่งงาน</label>
-                <input type="datetime-local" name="dueTime" required />
+input, select, textarea{
+  width:100%;
+  padding:14px;
+  font-size:16px;
+  border-radius:8px;
+  border:none;
+  margin-bottom:15px;
+}
 
-                <button type="submit">เพิ่มงาน</button>
-            </form>
-            <a href="/jobs">ดูงานทั้งหมด</a>
-        </div>
-    </body>
-    </html>
-    `);
+textarea{
+  resize:vertical;
+}
+
+button{
+  width:100%;
+  padding:16px;
+  font-size:18px;
+  border-radius:10px;
+  border:none;
+  cursor:pointer;
+  margin-top:5px;
+}
+
+.primary{
+  background:#3b82f6;
+  color:white;
+}
+
+.quick-btn{
+  background:#1e293b;
+  color:#38bdf8;
+  font-size:14px;
+  padding:10px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="form-container">
+<h2>➕ เพิ่มงานใหม่</h2>
+
+<form method="POST" action="/add-job">
+
+<label>ชื่อลูกค้า</label>
+<input name="customer" placeholder="เช่น คุณสมชาย" required autofocus />
+
+<label>ประเภทงาน</label>
+<input name="jobtype" placeholder="เช่น ไวนิล / สติ๊กเกอร์ / ติดตั้ง" required />
+
+<label>รายละเอียดเพิ่มเติม</label>
+<textarea name="note" rows="3" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
+
+<label>กำหนดวันเวลา</label>
+<input type="datetime-local" name="duetime" required />
+
+<button type="button" class="quick-btn" onclick="setOneHour()">⏰ ด่วน +1 ชั่วโมง</button>
+<button type="button" class="quick-btn" onclick="setTomorrow()">📆 พรุ่งนี้ 10:00</button>
+
+<button type="submit" class="primary">💾 บันทึกงาน</button>
+
+</form>
+</div>
+
+<script>
+function setOneHour(){
+  let now = new Date();
+  now.setHours(now.getHours() + 1);
+  document.querySelector('[name="duetime"]').value =
+    now.toISOString().slice(0,16);
+}
+
+function setTomorrow(){
+  let t = new Date();
+  t.setDate(t.getDate()+1);
+  t.setHours(10);
+  t.setMinutes(0);
+  document.querySelector('[name="duetime"]').value =
+    t.toISOString().slice(0,16);
+}
+</script>
+
+</body>
+</html>
+`)
+
 });
 
 const cron = require('node-cron');
