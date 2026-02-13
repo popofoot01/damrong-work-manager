@@ -226,7 +226,36 @@ const localTime = new Date(new Date(job.duetime).getTime() + 6 * 60 * 60 * 1000)
                value="${localTime}" />
         <br><br>
 
-        <button type="submit">บันทึก</button>
+        <style>
+.btn-save {
+    background:#2563eb;
+    color:white;
+    padding:8px 16px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.btn-cancel {
+    background:#6b7280;
+    color:white;
+    padding:8px 16px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    margin-left:10px;
+}
+</style>
+
+<button type="submit" class="btn-save">บันทึก</button>
+<button type="button" 
+        class="btn-cancel"
+        onclick="window.location.href='/jobs'">
+    ยกเลิก
+</button>
+
+
+
       </form>
     </body>
     </html>
