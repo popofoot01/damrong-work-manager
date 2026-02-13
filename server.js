@@ -949,11 +949,23 @@ button{
 </div>
 
 <script>
+function formatLocal(date) {
+  if (!date || isNaN(date.getTime())) return "";
+
+  const pad = (n) => n.toString().padStart(2, '0');
+
+  return date.getFullYear() + "-" +
+         pad(date.getMonth()+1) + "-" +
+         pad(date.getDate()) + "T" +
+         pad(date.getHours()) + ":" +
+         pad(date.getMinutes());
+}
+
 function setOneHour(){
   let now = new Date();
   now.setHours(now.getHours() + 1);
   document.querySelector('[name="duetime"]').value =
-    now.toISOString().slice(0,16);
+    formatLocal(now);
 }
 
 function setTomorrow(){
@@ -962,7 +974,7 @@ function setTomorrow(){
   t.setHours(10);
   t.setMinutes(0);
   document.querySelector('[name="duetime"]').value =
-    t.toISOString().slice(0,16);
+    formatLocal(t);
 }
 </script>
 
