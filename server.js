@@ -227,63 +227,143 @@ app.get('/monitor', async (req, res) => {
     }
 
     const now = new Date();
+    const today = now.toDateString();
 
-    const jobCards = jobs.map(job => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowString = tomorrow.toDateString();
+
+    let todayTomorrowJobs = [];
+    let pending = [];
+    let working = [];
+    let completed = [];
+
+    jobs.forEach(job => {
 
         const due = new Date(job.duetime);
         const diffMinutes = (due - now) / 60000;
 
-        let color = "#e5e7eb"; // ปกติ
-        let blinkClass = "";
+        // โซน วันนี้ + พรุ่งนี้ (เฉพาะยังไม่เสร็จ)
+        if (
+            (due.toDateString() === today || due.toDateString() === tomorrowString)
+            && job.status !== "เสร็จสิ้น"
+        ) {
+            todayTomorrowJobs.push({ job, diffMinutes });
+        }
 
-        if (job.status === "เสร็จสิ้น") {
-            color = "#bbf7d0"; // เขียว
-        } else if (diffMinutes <= 60 && diffMinutes > 0) {
-            color = "#fecaca"; // แดง
-            blinkClass = "blink";
+        // แบ่งสถานะ
+        if (job.status === "รอดำเนินการ") pending.push(job);
+        else if (job.status === "กำลังทำ") working.push(job);
+        else if (job.status === "เสร็จสิ้น") completed.push(job);
+    });
+
+    const createCard = (job, diffMinutes = null) => {
+
+        let extraClass = "";
+        let bgColor = "#1f2937";
+
+        if (diffMinutes !== null && diffMinutes <= 30 && diffMinutes > 0) {
+            extraClass = "blink";
+            bgColor = "#7f1d1d";
         }
 
         return `
-        <div class="card ${blinkClass}" style="background:${color}">
+        <div class="card ${extraClass}" style="background:${bgColor}">
             <h3>${job.customer}</h3>
             <p>${job.jobtype}</p>
-            <p>กำหนดส่ง: ${due.toLocaleString('th-TH', {
+            <p>⏰ ${new Date(job.duetime).toLocaleString('th-TH', {
                 timeZone: 'Asia/Dhaka',
                 hour: '2-digit',
                 minute: '2-digit'
             })}</p>
-            <p>สถานะ: ${job.status}</p>
+            <p>📌 ${job.status}</p>
         </div>
         `;
-    }).join('');
+    };
 
     res.send(`
-        <html>
-        <head>
-            <meta http-equiv="refresh" content="30">
-            <style>
-                body { font-family: sans-serif; background:#111; color:white; }
-                .card {
-                    padding:20px;
-                    margin:10px;
-                    border-radius:10px;
-                    font-size:20px;
-                }
-                .blink {
-                    animation: blink 1s infinite;
-                }
-                @keyframes blink {
-                    50% { opacity: 0.4; }
-                }
-            </style>
-        </head>
-        <body>
-            <h1>📺 MONITOR งานวันนี้</h1>
-            ${jobCards}
-        </body>
-        </html>
+    <html>
+    <head>
+        <meta http-equiv="refresh" content="30">
+        <style>
+            body {
+                font-family: sans-serif;
+                background: #111827;
+                color: white;
+                margin: 0;
+                padding: 20px;
+            }
+            h1, h2 {
+                margin-bottom: 10px;
+            }
+            .dashboard {
+                display: flex;
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+            .box {
+                background: #1f2937;
+                padding: 20px;
+                border-radius: 10px;
+                font-size: 22px;
+                flex: 1;
+                text-align: center;
+            }
+            .row {
+                display: flex;
+                gap: 20px;
+            }
+            .column {
+                flex: 1;
+            }
+            .card {
+                padding: 15px;
+                margin-bottom: 10px;
+                border-radius: 10px;
+            }
+            .blink {
+                animation: blink 1s infinite;
+            }
+            @keyframes blink {
+                50% { opacity: 0.4; }
+            }
+        </style>
+    </head>
+    <body>
+
+        <h1>📺 MONITOR ระบบงานร้าน</h1>
+
+        <div class="dashboard">
+            <div class="box">📅 วันนี้+พรุ่งนี้<br>${todayTomorrowJobs.length} งาน</div>
+            <div class="box">🟡 รอดำเนินการ<br>${pending.length} งาน</div>
+            <div class="box">🔵 กำลังทำ<br>${working.length} งาน</div>
+            <div class="box">🟢 เสร็จแล้ว<br>${completed.length} งาน</div>
+        </div>
+
+        <h2>🔥 วันนี้ + พรุ่งนี้ (ยังไม่เสร็จ)</h2>
+        ${todayTomorrowJobs.map(item => createCard(item.job, item.diffMinutes)).join('')}
+
+        <h2>📊 แยกตามสถานะ</h2>
+        <div class="row">
+            <div class="column">
+                <h3>รอดำเนินการ</h3>
+                ${pending.map(job => createCard(job)).join('')}
+            </div>
+            <div class="column">
+                <h3>กำลังทำ</h3>
+                ${working.map(job => createCard(job)).join('')}
+            </div>
+            <div class="column">
+                <h3>เสร็จสิ้น</h3>
+                ${completed.map(job => createCard(job)).join('')}
+            </div>
+        </div>
+
+    </body>
+    </html>
     `);
 });
+
 
 
 
