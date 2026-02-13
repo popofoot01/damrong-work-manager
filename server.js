@@ -187,7 +187,6 @@ app.get('/jobs', async (req, res) => {
 
 //แสดงหน้าแก้ไข
 app.get('/edit/:id', async (req, res) => {
-
   const { data: job, error } = await supabase
     .from('jobs')
     .select('*')
@@ -195,6 +194,9 @@ app.get('/edit/:id', async (req, res) => {
     .single();
 
   if (error) return res.send("ไม่พบข้อมูล");
+const localTime = new Date(new Date(job.duetime).getTime() + 6 * 60 * 60 * 1000)
+  .toISOString()
+  .slice(0,16);
 
   res.send(`
     <html>
