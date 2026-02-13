@@ -23,7 +23,7 @@ app.post('/add-job', async (req, res) => {
             {
                 customer: customer,
                 jobtype: jobType,   // ต้องเป็น jobType ตรงนี้
-                duetime: dueTime,
+                duetime: dueDate.toISOString(), 
                 status: "รอดำเนินการ",
                 notified: false
             }
