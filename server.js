@@ -380,7 +380,7 @@ app.get('/monitor', async (req, res) => {
                 position: fixed;
                 top: 20px;
                 right: 30px;
-                font-size: 28px;
+                font-size: 36px;
                 font-weight: bold;
                 color: #e5e7eb;
                 letter-spacing: 2px;
