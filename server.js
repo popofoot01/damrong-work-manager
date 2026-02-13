@@ -13,9 +13,9 @@ const supabase = createClient(
     process.env.SUPABASE_KEY
 );
 
-
+//เพิ่มงาน
 app.post('/add-job', async (req, res) => {
-    const { customer, jobType, dueTime } = req.body;
+    const { customer, jobtype, duetime, status, note } = req.body;
     const thailandTime = new Date(dueTime + ":00+07:00");
     const { error } = await supabase
         .from('jobs')
@@ -25,7 +25,9 @@ app.post('/add-job', async (req, res) => {
                 jobtype: jobType,   // ต้องเป็น jobType ตรงนี้
                 duetime: thailandTime.toISOString(),
                 status: "รอดำเนินการ",
+                note,
                 notified: false
+                
             }
         ]);
 
@@ -78,7 +80,7 @@ app.post('/delete-job', async (req, res) => {
 
 //อัพเดทงาน
 app.post('/update-job', async (req, res) => {
-    const { id, customer, jobtype, duetime } = req.body;
+    const { id, customer, jobtype, duetime, note } = req.body;
 
     // 👉 เอาเวลาที่เลือกมา +6 ชั่วโมง
     const adjustedTime = new Date(duetime);
@@ -90,6 +92,7 @@ app.post('/update-job', async (req, res) => {
             customer: customer,
             jobtype: jobtype,
             duetime: adjustedTime.toISOString(),
+            note,
             notified: false
 })
     .eq('id', id);
@@ -596,7 +599,7 @@ app.get('/jobs', async (req, res) => {
     }
 
     let jobCards = jobs.map(job => {
-
+        
         let statusColor = "#facc15";
         if (job.status === "กำลังทำ") statusColor = "#3b82f6";
         if (job.status === "เสร็จแล้ว") statusColor = "#22c55e";
@@ -605,6 +608,7 @@ app.get('/jobs', async (req, res) => {
             <div class="card">
                 <h3>${job.customer}</h3>
                 <p>ประเภท: ${job.jobtype}</p>
+                ${job.note ? `<p style="color:#9ca3af;">📝 ${job.note}</p>` : ""}
                 <p>กำหนดส่ง: ${
   new Date(job.duetime).toLocaleDateString("th-TH", {
     timeZone: "Asia/Bangkok",
@@ -702,6 +706,10 @@ const localTime = new Date(new Date(job.duetime).getTime() + 7 * 60 * 60 * 1000)
         ประเภทงาน:<br>
         <input name="jobtype" value="${job.jobtype}" /><br><br>
 
+        รายละเอียดเพิ่มเติม:<br>
+        <textarea name="note" rows="3" style="width:100%;">${job.note || ""}</textarea>
+        <br><br>
+
         วันเวลา:<br>
         <input type="datetime-local" 
                name="duetime" 
@@ -795,7 +803,7 @@ app.get('/test', async (req, res) => {
 });
 
 
-
+//ปรับแต่งหน้าเพิ่มงาน
 app.get('/', (req, res) => {
     res.send(`
     <!DOCTYPE html>
@@ -872,6 +880,11 @@ app.get('/', (req, res) => {
                     <option>ฟิวเจอร์บอร์ด</option>
                     <option>ตรายาง</option>
                 </select>
+
+                รายละเอียดเพิ่มเติม:<br>
+                <textarea name="note" rows="3" style="width:100%;"></textarea>
+                <br><br>
+
 
                 <label>วันและเวลาส่งงาน</label>
                 <input type="datetime-local" name="dueTime" required />
