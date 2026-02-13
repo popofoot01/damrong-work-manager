@@ -194,6 +194,9 @@ app.get('/edit/:id', async (req, res) => {
     .single();
 
   if (error) return res.send("ไม่พบข้อมูล");
+const localTime = new Date(new Date(job.duetime).getTime() + 6 * 60 * 60 * 1000)
+  .toISOString()
+  .slice(0,16);
 
   res.send(`
     <html>
