@@ -61,8 +61,8 @@ app.post('/delete-job', async (req, res) => {
 
   const { error } = await supabase
     .from('jobs')
-    .delete()
-    .eq('id', id);
+    .update({ is_deleted: true })
+.eq('id', id);
 
   if (error) {
     console.log(error);
@@ -107,7 +107,8 @@ app.get('/jobs', async (req, res) => {
 
     const { data: jobs, error } = await supabase
         .from('jobs')
-        .select('*')
+.select('*')
+.eq('is_deleted', false)
         .order('id', { ascending: false });
 
     if (error) {
