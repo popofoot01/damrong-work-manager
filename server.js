@@ -266,7 +266,7 @@ const tomorrowThai = tomorrowObj.toLocaleDateString("th-TH", {
 
     jobs.forEach(job => {
 
-        const dueThaiDate = new Date(job.dueTime).toLocaleDateString("th-TH", {
+        const dueThaiDate = new Date(job.duetime).toLocaleDateString("th-TH", {
     timeZone: "Asia/Bangkok"
 });
 
