@@ -16,7 +16,19 @@ const supabase = createClient(
 //เพิ่มงาน
 app.post('/add-job', async (req, res) => {
     const { customer, jobType, dueTime, status, note } = req.body;
-    const thailandTime = new Date(dueTime + ":00+07:00");
+    
+    // 🛑 เช็คก่อนว่า duetime มีค่าไหม
+  if (!dueTime) {
+    return res.send("กรุณาเลือกวันเวลา");
+  }
+
+  const thailandTime = new Date(dueTime + ":00+07:00");
+
+  // 🛑 เช็คว่า Date ถูกต้องไหม
+  if (isNaN(thailandTime.getTime())) {
+    return res.send("รูปแบบวันเวลาไม่ถูกต้อง");
+  }
+
     const { error } = await supabase
         .from('jobs')
         .insert([
