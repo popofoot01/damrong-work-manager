@@ -54,6 +54,8 @@ app.post('/update-status', async (req, res) => {
     res.redirect('/jobs');
 });
 
+
+
 app.post('/delete-job', async (req, res) => {
   const { id } = req.body;
 
@@ -70,16 +72,23 @@ app.post('/delete-job', async (req, res) => {
   res.redirect('/jobs');
 });
 
-app.post('/update-job', async (req, res) => {
-  const { id, customer, jobtype, duetime } = req.body;
 
-  const { error } = await supabase
-    .from('jobs')
-    .update({
-      customer,
-      jobtype,
-      duetime
-    })
+//อัพเดทงาน
+app.post('/update-job', async (req, res) => {
+    const { id, customer, jobtype, duetime } = req.body;
+
+    // 👉 เอาเวลาที่เลือกมา +6 ชั่วโมง
+    const adjustedTime = new Date(duetime);
+    adjustedTime.setHours(adjustedTime.getHours() + 6);
+
+    const { error } = await supabase
+        .from('jobs')
+        .update({
+            customer: customer,
+            jobtype: jobtype,
+            duetime: adjustedTime.toISOString(),
+            notified: false
+})
     .eq('id', id);
 
   if (error) {
