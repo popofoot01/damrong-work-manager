@@ -257,7 +257,13 @@ app.get('/monitor', async (req, res) => {
         // แยกสถานะ
         if (job.status === "รอดำเนินการ") pending.push(job);
         else if (job.status === "กำลังทำ") working.push(job);
-        else if (job.status === "เสร็จแล้ว") completed.push(job);
+        else if (job.status && job.status.includes("เสร็จแล้ว")) completed.push(job);
+
+        pending.sort((a,b)=> new Date(a.duetime) - new Date(b.duetime));
+        working.sort((a,b)=> new Date(a.duetime) - new Date(b.duetime));
+        completed.sort((a,b)=> new Date(a.duetime) - new Date(b.duetime));
+
+
     });
 
     const createRowCard = (job, diffMinutes = null) => {
@@ -309,7 +315,11 @@ app.get('/monitor', async (req, res) => {
 
     const createStatusRowCard = (job) => {
 
-    const dueText = new Date(job.duetime).toLocaleString('th-TH', {
+    const now = new Date();
+    const due = new Date(job.duetime);
+    const diffMinutes = (due - now) / 60000;
+
+    const dueText = due.toLocaleString('th-TH', {
         timeZone: 'Asia/Bangkok',
         day: '2-digit',
         month: 'short',
@@ -318,15 +328,34 @@ app.get('/monitor', async (req, res) => {
         minute: '2-digit'
     });
 
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    let badge = "";
     let bgColor = "#1f2937";
     let icon = "🟡";
 
-    if (job.status === "กำลังทำ") {
+    // 🟣 เลยกำหนด
+    if (diffMinutes < 0 && job.status !== "เสร็จสิ้น") {
+        bgColor = "#4c1d95";
+        icon = "🟣";
+    }
+
+    // 🔵 กำลังทำ
+    else if (job.status === "กำลังทำ") {
         bgColor = "#1e3a8a";
         icon = "🔵";
-    } else if (job.status === "เสร็จสิ้น") {
+    }
+
+    // 🟢 เสร็จ
+    else if (job.status && job.status.includes("เสร็จ")) {
         bgColor = "#064e3b";
         icon = "🟢";
+    }
+
+    // badge พรุ่งนี้
+    if (due.toDateString() === tomorrow.toDateString()) {
+        badge = `<span class="badge">พรุ่งนี้</span>`;
     }
 
     return `
@@ -334,9 +363,11 @@ app.get('/monitor', async (req, res) => {
         <strong>${icon} ${job.customer}</strong>
         <span>${job.jobtype}</span>
         <span>📅 ${dueText}</span>
+        ${badge}
     </div>
     `;
 };
+
 
 
     res.send(`
@@ -405,6 +436,16 @@ app.get('/monitor', async (req, res) => {
                 color: #e5e7eb;
                 letter-spacing: 2px;
             }
+
+            .badge {
+                background:#f59e0b;
+                color:black;
+                padding:3px 8px;
+                border-radius:6px;
+                font-size:12px;
+                font-weight:bold;
+            }
+
 
 
             .blink-red {
@@ -621,8 +662,8 @@ app.get('/jobs', async (req, res) => {
         </style>
     </head>
     <body>
-        <h1>รายการงานทั้งหมด</h1>
-        <a href="/">⬅ กลับหน้าเพิ่มงาน</a>
+        <h1>รายการงานทั้งหมด</h1> 
+        <a href="/">⬅ กลับหน้าเพิ่มงาน</a> |
         <a href="/completed">งานเสร็จแล้ว</a> |
 <a href="/deleted">งานที่ถูกลบ</a>
 <br><br>
