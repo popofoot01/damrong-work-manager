@@ -79,7 +79,7 @@ app.post('/update-job', async (req, res) => {
 
     // 👉 เอาเวลาที่เลือกมา +6 ชั่วโมง
     const adjustedTime = new Date(duetime);
-    adjustedTime.setHours(adjustedTime.getHours() - 12);
+    adjustedTime.setHours(adjustedTime.getHours() - 0);
 
     const { error } = await supabase
         .from('jobs')
