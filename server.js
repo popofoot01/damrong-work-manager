@@ -356,10 +356,24 @@ app.get('/monitor', async (req, res) => {
         icon = "🟢";
     }
 
+
+    function toBKK(date) {
+  return new Date(
+    new Date(date).toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+  );
+}
+
     // badge พรุ่งนี้
-    if (due.toDateString() === tomorrow.toDateString()) {
-        badge = `<span class="badge">พรุ่งนี้</span>`;
-    }
+   const dueBKK = toBKK(job.duetime);
+const nowBKK = toBKK(new Date());
+
+const tomorrowBKK = new Date(nowBKK);
+tomorrowBKK.setDate(nowBKK.getDate() + 1);
+
+if (dueBKK.toDateString() === tomorrowBKK.toDateString()) {
+  badge = `<span class="badge">พรุ่งนี้</span>`;
+}
+
 
     return `
     <div class="row-card" style="background:${bgColor}">
