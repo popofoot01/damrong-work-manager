@@ -263,14 +263,25 @@ app.get('/monitor', async (req, res) => {
         const diffMinutes = (due - now) / 60000;
 
         // วันนี้
-        if (due.toDateString() === todayString && job.status !== "เสร็จแล้ว") {
-            todayJobs.push({ job, diffMinutes });
-        }
+        if (
+    due.getFullYear() === now.getFullYear() &&
+    due.getMonth() === now.getMonth() &&
+    due.getDate() === now.getDate() &&
+    job.status != "เสร็จแล้ว"
+) {
+    todayJobs.push({ job, diffMinutes });
+}
 
         // พรุ่งนี้
-        if (due.toDateString() === tomorrowString && job.status !== "เสร็จแล้ว") {
-            tomorrowJobs.push({ job, diffMinutes });
-        }
+        if (
+    due.getFullYear() === tomorrow.getFullYear() &&
+    due.getMonth() === tomorrow.getMonth() &&
+    due.getDate() === tomorrow.getDate() &&
+    job.status != "เสร็จแล้ว"
+) {
+    tomorrowJobs.push({ job, diffMinutes });
+}
+
 
         // แยกสถานะ
         if (job.status === "รอดำเนินการ") pending.push(job);
