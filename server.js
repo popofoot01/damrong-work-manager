@@ -828,14 +828,23 @@ app.get('/', (req, res) => {
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>เพิ่มงาน</title>
+<title>เพิ่มงาน | ดำรงค์อิงค์เจ็ท</title>
 
 <style>
-body {
+body{
   background:#0f172a;
   font-family:Arial;
   color:white;
   margin:0;
+}
+
+.header{
+  background:#111827;
+  padding:18px;
+  text-align:center;
+  font-size:20px;
+  font-weight:bold;
+  border-bottom:1px solid #1f2937;
 }
 
 .form-container{
@@ -847,6 +856,11 @@ body {
 h2{
   text-align:center;
   margin-bottom:25px;
+}
+
+label{
+  font-size:14px;
+  opacity:0.8;
 }
 
 input, select, textarea{
@@ -869,12 +883,18 @@ button{
   border-radius:10px;
   border:none;
   cursor:pointer;
-  margin-top:5px;
+  margin-top:8px;
 }
 
 .primary{
   background:#3b82f6;
   color:white;
+}
+
+.secondary{
+  background:#1f2937;
+  color:#38bdf8;
+  font-size:15px;
 }
 
 .quick-btn{
@@ -888,6 +908,10 @@ button{
 
 <body>
 
+<div class="header">
+🏪 ดำรงค์อิงค์เจ็ท
+</div>
+
 <div class="form-container">
 <h2>➕ เพิ่มงานใหม่</h2>
 
@@ -897,7 +921,15 @@ button{
 <input name="customer" placeholder="เช่น คุณสมชาย" required autofocus />
 
 <label>ประเภทงาน</label>
-<input name="jobtype" placeholder="เช่น ไวนิล / สติ๊กเกอร์ / ติดตั้ง" required />
+<select name="jobtype" required>
+  <option value="">-- เลือกประเภทงาน --</option>
+  <option>ไวนิล</option>
+  <option>สติ๊กเกอร์</option>
+  <option>ป้ายโฟม</option>
+  <option>สแตนดี้</option>
+  <option>ติดตั้ง</option>
+  <option>อื่นๆ</option>
+</select>
 
 <label>รายละเอียดเพิ่มเติม</label>
 <textarea name="note" rows="3" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
@@ -909,6 +941,9 @@ button{
 <button type="button" class="quick-btn" onclick="setTomorrow()">📆 พรุ่งนี้ 10:00</button>
 
 <button type="submit" class="primary">💾 บันทึกงาน</button>
+<button type="button" class="secondary" onclick="window.location.href='/jobs'">
+📋 ดูงานทั้งหมด
+</button>
 
 </form>
 </div>
@@ -934,6 +969,7 @@ function setTomorrow(){
 </body>
 </html>
 `)
+
 
 });
 
