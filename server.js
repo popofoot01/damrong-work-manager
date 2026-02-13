@@ -419,22 +419,18 @@ app.get('/monitor', async (req, res) => {
         </div>
 
         <h2>
-        🔥 วันนี้ 
-        <span style="font-size:16px;color:#9ca3af;">
-        (${now.toLocaleDateString('th-TH',{ day:'2-digit', month:'short'})})
-        </span>
-        </h2>
+🔥 วันนี้ 
+<span id="today-date" style="font-size:16px;color:#9ca3af;"></span>
+</h2>
 
         <div class="horizontal">
         ${todayJobs.map(item => createRowCard(item.job, item.diffMinutes)).join('') || "ไม่มีงานวันนี้"}
         </div>
 
         <h2>
-        📆 พรุ่งนี้ 
-        <span style="font-size:16px;color:#9ca3af;">
-        (${tomorrow.toLocaleDateString('th-TH',{ day:'2-digit', month:'short'})})
-        </span>
-        </h2>
+📆 พรุ่งนี้ 
+<span id="tomorrow-date" style="font-size:16px;color:#9ca3af;"></span>
+</h2>
 
         <div class="horizontal">
         ${tomorrowJobs.map(item => createRowCard(item.job, item.diffMinutes)).join('') || "ไม่มีงานพรุ่งนี้"}
@@ -476,6 +472,33 @@ function updateClock() {
 setInterval(updateClock, 1000);
 updateClock();
 </script>
+
+<script>
+function updateDateLabels() {
+    const now = new Date();
+
+    const todayOptions = {
+        timeZone: "Asia/Bangkok",
+        day: "2-digit",
+        month: "short"
+    };
+
+    const todayText = now.toLocaleDateString("th-TH", todayOptions);
+
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const tomorrowText = tomorrow.toLocaleDateString("th-TH", todayOptions);
+
+    document.getElementById("today-date").innerText = "(" + todayText + ")";
+    document.getElementById("tomorrow-date").innerText = "(" + tomorrowText + ")";
+}
+
+updateDateLabels();
+setInterval(updateDateLabels, 60000);
+</script>
+
+
 
 
     </body>
