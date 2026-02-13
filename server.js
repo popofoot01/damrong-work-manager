@@ -116,14 +116,21 @@ app.get('/jobs', async (req, res) => {
             <div class="card">
                 <h3>${job.customer}</h3>
                 <p>ประเภท: ${job.jobtype}</p>
-                <p>กำหนดส่ง: ${new Date(job.duetime).toLocaleString("th-TH", {
-  timeZone: "Asia/Bangkok",
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit"
-}) + " น."}</p>
+                <p>กำหนดส่ง: ${
+  new Date(job.duetime).toLocaleDateString("th-TH", {
+    timeZone: "Asia/Bangkok",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }) +
+  " เวลา " +
+  new Date(job.duetime).toLocaleTimeString("th-TH", {
+    timeZone: "Asia/Bangkok",
+    hour: "2-digit",
+    minute: "2-digit",
+  }) +
+  " น."
+}</p>
                 <p style="color:${statusColor}; font-weight:bold;">
                     ${job.status}
                 </p>
@@ -396,11 +403,21 @@ app.get('/api/check-reminder', async (req, res) => {
     if (diffMinutes <= 60 && diffMinutes >= 55) {
 
       await sendLineMessage(
-        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString("th-TH", {
-  timeZone: "Asia/Bangkok",
-  dateStyle: "short",
-  timeStyle: "short"
-})}`
+        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${
+  due.toLocaleDateString("th-TH", {
+    timeZone: "Asia/Bangkok",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  }) +
+  " เวลา " +
+  due.toLocaleTimeString("th-TH", {
+    timeZone: "Asia/Bangkok",
+    hour: "2-digit",
+    minute: "2-digit",
+  }) +
+  " น."
+}`
       );
 
       await supabase
