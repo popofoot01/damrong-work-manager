@@ -16,7 +16,7 @@ const supabase = createClient(
 
 app.post('/add-job', async (req, res) => {
     const { customer, jobType, dueTime } = req.body;
-    const thailandTime = new Date(dueTime + ":00+07:00");
+    const thailandTime = new Date(dueTime + ":00+06:00");
     const { error } = await supabase
         .from('jobs')
         .insert([
