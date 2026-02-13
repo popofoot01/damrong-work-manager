@@ -979,7 +979,7 @@ function formatLocal(date) {
 function setOneHour(){
   let now = new Date();
   now.setHours(now.getHours() + 1);
-  document.querySelector('[name="duetime"]').value =
+  document.querySelector('[name="dueTime"]').value =
     formatLocal(now);
 }
 
@@ -988,7 +988,7 @@ function setTomorrow(){
   t.setDate(t.getDate()+1);
   t.setHours(10);
   t.setMinutes(0);
-  document.querySelector('[name="duetime"]').value =
+  document.querySelector('[name="dueTime"]').value =
     formatLocal(t);
 }
 </script>
