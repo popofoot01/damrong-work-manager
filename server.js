@@ -216,7 +216,7 @@ app.get('/completed', async (req, res) => {
 
 
 // ดูงานทั้งหมด
-/*app.get('/jobs', async (req, res) => {
+app.get('/jobs', async (req, res) => {
 
     const { data: jobs, error } = await supabase
     
@@ -309,32 +309,7 @@ app.get('/completed', async (req, res) => {
     </body>
     </html>
     `);
-});  */
-
-app.get('/jobs', async (req, res) => {
-
-    const filterStatus = req.query.status;
-
-    let query = supabase
-        .from('jobs')
-        .select('*')
-        .eq('is_deleted', false)
-        .order('duetime', { ascending: true });
-
-    if (filterStatus && filterStatus !== "all") {
-        query = query.eq('status', filterStatus);
-    }
-
-    const { data: jobs, error } = await query;
-
-    if (error) {
-        console.error(error);
-        return res.send("โหลดข้อมูลไม่สำเร็จ");
-    }
-
-
-
-
+});  
 
 //แสดงหน้าแก้ไข
 app.get('/edit/:id', async (req, res) => {
