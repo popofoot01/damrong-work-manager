@@ -211,7 +211,26 @@ app.get('/edit/:id', async (req, res) => {
         วันเวลา:<br>
         <input type="datetime-local" 
                name="duetime" 
-               value="${new Date(job.duetime).toISOString().slice(0,16)}" />
+               value="${(() => {
+    let date;
+
+    if (job.duetime) {
+        // เอาเวลาจาก DB แล้วชดเชย +6 ชั่วโมง
+        date = new Date(job.duetime);
+        date.setHours(date.getHours() + 6);
+    } else {
+        // ถ้าไม่มีค่า ให้ใช้เวลาปัจจุบัน
+        date = new Date();
+    }
+
+    return `
+    วันเวลา:<br>
+    <input type="datetime-local"
+           name="duetime"
+           value="${date.toISOString().slice(0,16)}" />
+    <br><br>
+    `;
+})()}" />
         <br><br>
 
         <button type="submit">บันทึก</button>
