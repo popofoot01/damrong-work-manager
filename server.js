@@ -382,33 +382,22 @@ app.get('/api/check-reminder', async (req, res) => {
     return res.send("error");
   }
 
- for (let job of jobs) {
+  for (let job of jobs) {
+    const due = new Date(job.duetime);
+    const diffMinutes = (due - now) / 60000;
 
-  const now = new Date();
-  const due = new Date(job.duetime);
-  const diffMinutes = (due - now) / 60000;
+    if (diffMinutes <= 60 && diffMinutes >= 55) {
 
-  console.log("==============");
-  console.log("NOW (UTC):", now.toISOString());
-  console.log("DUE (UTC):", due.toISOString());
-  console.log("NOW (Local):", now.toString());
-  console.log("DUE (Local):", due.toString());
-  console.log("DIFF MINUTES:", diffMinutes);
-  console.log("NOTIFIED:", job.notified);
+      await sendLineMessage(
+        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString()}`
+      );
 
-  if (diffMinutes <= 60 && diffMinutes >= 0) {
-    console.log(">>> SENDING LINE <<<");
-
-    await sendLineMessage(
-      `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString("th-TH",{ timeZone: "Asia/Bangkok" })}`
-    );
-
-    await supabase
-      .from("jobs")
-      .update({ notified: true })
-      .eq("id", job.id);
+      await supabase
+        .from('jobs')
+        .update({ notified: true })
+        .eq('id', job.id);
+    }
   }
-}
 
   res.send("checked");
 });
