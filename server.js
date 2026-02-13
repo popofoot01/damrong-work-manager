@@ -307,17 +307,37 @@ app.get('/monitor', async (req, res) => {
 
 
 
-    const createColumnCard = (job) => `
-        <div class="card">
-            <strong>${job.customer}</strong><br>
-            ${job.jobtype}<br>
-            ${new Date(job.duetime).toLocaleTimeString('th-TH',{
-                timeZone:'Asia/Bangkok',
-                hour:'2-digit',
-                minute:'2-digit'
-            })}
-        </div>
+    const createStatusRowCard = (job) => {
+
+    const dueText = new Date(job.duetime).toLocaleString('th-TH', {
+        timeZone: 'Asia/Bangkok',
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    let bgColor = "#1f2937";
+    let icon = "🟡";
+
+    if (job.status === "กำลังทำ") {
+        bgColor = "#1e3a8a";
+        icon = "🔵";
+    } else if (job.status === "เสร็จสิ้น") {
+        bgColor = "#064e3b";
+        icon = "🟢";
+    }
+
+    return `
+    <div class="row-card" style="background:${bgColor}">
+        <strong>${icon} ${job.customer}</strong>
+        <span>${job.jobtype}</span>
+        <span>📅 ${dueText}</span>
+    </div>
     `;
+};
+
 
     res.send(`
     <html>
@@ -436,22 +456,31 @@ app.get('/monitor', async (req, res) => {
         ${tomorrowJobs.map(item => createRowCard(item.job, item.diffMinutes)).join('') || "ไม่มีงานพรุ่งนี้"}
         </div>
 
-        <h2>📊 แยกตามสถานะ</h2>
+       <h2>📊 แยกตามสถานะ</h2>
 
-        <div class="row">
-            <div class="column">
-                <h3>รอดำเนินการ</h3>
-                ${pending.map(createColumnCard).join('')}
-            </div>
-            <div class="column">
-                <h3>กำลังทำ</h3>
-                ${working.map(createColumnCard).join('')}
-            </div>
-            <div class="column">
-                <h3>เสร็จแล้ว</h3>
-                ${completed.map(createColumnCard).join('')}
-            </div>
+<div class="row">
+    <div class="column">
+        <h3>รอดำเนินการ</h3>
+        <div class="horizontal">
+            ${pending.map(createStatusRowCard).join('') || "ไม่มีงาน"}
         </div>
+    </div>
+
+    <div class="column">
+        <h3>กำลังทำ</h3>
+        <div class="horizontal">
+            ${working.map(createStatusRowCard).join('') || "ไม่มีงาน"}
+        </div>
+    </div>
+
+    <div class="column">
+        <h3>เสร็จสิ้น</h3>
+        <div class="horizontal">
+            ${completed.map(createStatusRowCard).join('') || "ไม่มีงาน"}
+        </div>
+    </div>
+</div>
+
 
         <script>
 function updateClock() {
