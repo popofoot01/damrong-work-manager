@@ -250,6 +250,7 @@ const localTime = new Date(new Date(job.duetime).getTime() + 6 * 60 * 60 * 1000)
         onclick="window.location.href='/jobs'">
     ยกเลิก
 </button>
+</form>
 
 <form method="POST" action="/delete-job" 
       onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบงานนี้?');"
@@ -265,12 +266,6 @@ const localTime = new Date(new Date(job.duetime).getTime() + 6 * 60 * 60 * 1000)
         ลบงาน
     </button>
 </form>
-
-
-
-</form>
-
-
 
 
     </body>
