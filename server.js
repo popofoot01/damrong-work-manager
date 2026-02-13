@@ -16,7 +16,8 @@ const supabase = createClient(
 //เพิ่มงาน
 app.post('/add-job', async (req, res) => {
     const { customer, jobType, dueTime, status, note } = req.body;
-    
+    console.log(req.body);
+
     // 🛑 เช็คก่อนว่า duetime มีค่าไหม
    if (!customer || !jobType || !dueTime) {
     return res.send("กรุณากรอกข้อมูลให้ครบ");
