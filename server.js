@@ -262,27 +262,50 @@ app.get('/monitor', async (req, res) => {
 
     const createRowCard = (job, diffMinutes = null) => {
 
-        let bgColor = "#1f2937";
-        let extraClass = "";
+    let bgColor = "#1f2937";
+    let extraClass = "";
+    let icon = "⚪";
 
-        if (diffMinutes !== null && diffMinutes <= 30 && diffMinutes > 0) {
-            bgColor = "#7f1d1d";
-            extraClass = "blink";
-        }
+    // 🔴 ใกล้กำหนด ≤ 30 นาที
+    if (diffMinutes !== null && diffMinutes <= 30 && diffMinutes > 0) {
+        bgColor = "#7f1d1d";
+        extraClass = "blink-red";
+        icon = "🔴";
+    }
 
-        return `
-        <div class="row-card ${extraClass}" style="background:${bgColor}">
-            <strong>${job.customer}</strong>
-            <span>${job.jobtype}</span>
-            <span>${new Date(job.duetime).toLocaleTimeString('th-TH',{
-                timeZone:'Asia/Dhaka',
-                hour:'2-digit',
-                minute:'2-digit'
-            })}</span>
-            <span>${job.status}</span>
-        </div>
-        `;
-    };
+    // 🔵 กำลังทำ
+    else if (job.status === "กำลังทำ") {
+        bgColor = "#1e3a8a";
+        extraClass = "blink-blue";
+        icon = "🔵";
+    }
+
+    // 🟢 เสร็จ
+    else if (job.status === "เสร็จสิ้น") {
+        bgColor = "#064e3b";
+        icon = "🟢";
+    }
+
+    // 🟡 รอดำเนินการ
+    else {
+        icon = "🟡";
+    }
+
+    return `
+    <div class="row-card ${extraClass}" style="background:${bgColor}">
+        <strong>${icon} ${job.customer}</strong>
+        <span>${job.jobtype}</span>
+        <span>${new Date(job.duetime).toLocaleTimeString('th-TH',{
+            timeZone:'Asia/Dhaka',
+            hour:'2-digit',
+            minute:'2-digit'
+        })}</span>
+        <span>${job.status}</span>
+    </div>
+    `;
+};
+
+
 
     const createColumnCard = (job) => `
         <div class="card">
@@ -352,12 +375,23 @@ app.get('/monitor', async (req, res) => {
                 margin-bottom: 10px;
                 border-radius: 8px;
             }
-            .blink {
-                animation: blink 1s infinite;
-            }
-            @keyframes blink {
-                50% { opacity: 0.4; }
-            }
+            .blink-red {
+    animation: blinkRed 0.6s infinite;
+}
+
+.blink-blue {
+    animation: blinkBlue 1.2s infinite;
+}
+
+@keyframes blinkRed {
+    50% { opacity: 0.3; }
+}
+
+@keyframes blinkBlue {
+    50% { opacity: 0.5; }
+}
+
+
         </style>
     </head>
     <body>
