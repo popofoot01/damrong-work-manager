@@ -209,7 +209,7 @@ app.get('/edit/:id', async (req, res) => {
         <input name="jobtype" value="${job.jobtype}" /><br><br>
 
         วันเวลา:<br>
-        <input type="thailandTime.toISOString()"
+        <input type="datetime-local"
        name="duetime"
        value="${localTime}" />
         <br><br>
