@@ -259,7 +259,7 @@ app.get('/monitor', async (req, res) => {
 
     jobs.forEach(job => {
 
-        const due = new Date(job.duetime);
+        const due = new Date(job.dueTime);
         const diffMinutes = (due - now) / 60000;
 
         // วันนี้
