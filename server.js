@@ -237,7 +237,7 @@ app.get('/monitor', async (req, res) => {
         .from('jobs')
         .select('*')
         .eq('is_deleted', false)
-        .order('dueTime', { ascending: true });
+        .order('duetime', { ascending: true });
 
     if (error) {
         console.error(error);
@@ -268,7 +268,7 @@ const tomorrow = new Date(
     let completed = [];
 
     jobs.forEach(job => {
-  const due = new Date(job.dueTime);
+  const due = new Date(job.duetime);
 
   const dueDateOnly = new Date(
     due.getFullYear(),
