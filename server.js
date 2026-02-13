@@ -100,12 +100,78 @@ app.post('/update-job', async (req, res) => {
 });
 
 
+//หน้างานที่ลบ ประวัติ
+app.get('/deleted', async (req, res) => {
+
+    const { data: jobs, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('is_deleted', true)
+        .order('duetime', { ascending: false });
+
+    if (error) {
+        console.error(error);
+        return res.send("โหลดข้อมูลไม่สำเร็จ");
+    }
+
+    const jobCards = jobs.map(job => `
+        <div style="border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:6px;">
+            <strong>${job.customer}</strong><br>
+            ประเภท: ${job.jobtype}<br>
+            สถานะ: ${job.status}
+        </div>
+    `).join('');
+
+    res.send(`
+        <h2>งานที่ถูกลบ</h2>
+        <a href="/jobs">← กลับหน้าหลัก</a>
+        <br><br>
+        ${jobCards || "ไม่มีข้อมูล"}
+    `);
+});
+
+
+//หน้างานสำเร็จ
+app.get('/completed', async (req, res) => {
+
+    const { data: jobs, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('status', 'เสร็จสิ้น')
+        .eq('is_deleted', false)
+        .order('duetime', { ascending: false });
+
+    if (error) {
+        console.error(error);
+        return res.send("โหลดข้อมูลไม่สำเร็จ");
+    }
+
+    const jobCards = jobs.map(job => `
+        <div style="border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:6px;">
+            <strong>${job.customer}</strong><br>
+            ประเภท: ${job.jobtype}<br>
+            กำหนดส่ง: ${new Date(job.duetime).toLocaleString('th-TH', {
+                timeZone: 'Asia/Dhaka'
+            })}
+        </div>
+    `).join('');
+
+    res.send(`
+        <h2>งานที่เสร็จแล้ว</h2>
+        <a href="/jobs">← กลับหน้าหลัก</a>
+        <br><br>
+        ${jobCards || "ไม่มีข้อมูล"}
+    `);
+});
+
+
 
 
 // ดูงานทั้งหมด
 app.get('/jobs', async (req, res) => {
 
     const { data: jobs, error } = await supabase
+    
         .from('jobs')
 .select('*')
 .eq('is_deleted', false)
@@ -184,6 +250,11 @@ app.get('/jobs', async (req, res) => {
     </head>
     <body>
         <h1>รายการงานทั้งหมด</h1>
+        
+        <a href="/completed">งานเสร็จแล้ว</a> |
+<a href="/deleted">งานที่ถูกลบ</a>
+<br><br>
+
         ${jobCards || "<p>ยังไม่มีงาน</p>"}
         <br>
         <a href="/">⬅ กลับหน้าเพิ่มงาน</a>
