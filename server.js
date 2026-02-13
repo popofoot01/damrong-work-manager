@@ -481,7 +481,7 @@ app.get('/jobs', async (req, res) => {
                 <p>ประเภท: ${job.jobtype}</p>
                 <p>กำหนดส่ง: ${
   new Date(job.duetime).toLocaleDateString("th-TH", {
-    timeZone: "AAsia/Bangkok",
+    timeZone: "Asia/Bangkok",
     day: "numeric",
     month: "short",
     year: "numeric",
