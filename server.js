@@ -156,7 +156,18 @@ app.get('/jobs', async (req, res) => {
 
 
             
+<form method="POST" action="/delete-job" style="margin-top:10px;">
 
+<a href="/edit/${job.id}" 
+   <button style="background:#e74c3c;color:white;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;">
+   แก้ไขงาน
+</a>
+
+  <input type="hidden" name="id" value="${job.id}">
+  <button style="background:#e74c3c;color:white;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;">
+    ลบงาน
+  </button>
+</form>
 
 
 
