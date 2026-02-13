@@ -61,7 +61,10 @@ app.post('/delete-job', async (req, res) => {
 
   const { error } = await supabase
     .from('jobs')
-    .update({ is_deleted: true })
+    .update({ 
+        is_deleted: true,
+        notified: true 
+    })
 .eq('id', id);
 
   if (error) {
@@ -126,7 +129,7 @@ app.get('/deleted', async (req, res) => {
         });
 
         const createdDate = new Date(job.created_at).toLocaleString('th-TH', {
-            timeZone: 'Asia/Dhaka',
+            timeZone: 'Asia/Bangkok',
             day: '2-digit',
             month: 'short',
             year: 'numeric',
@@ -139,7 +142,7 @@ app.get('/deleted', async (req, res) => {
                 <strong>${job.customer}</strong><br>
                 ประเภท: ${job.jobtype}<br>
                 📅 กำหนดส่ง: ${dueDate}<br>
-                🕒 วันที่สร้าง: ${createdDate}<br>
+                🕒 วันที่ลบ: ${createdDate}<br>
                 สถานะ: ${job.status}
             </div>
         `;
@@ -182,7 +185,7 @@ app.get('/completed', async (req, res) => {
         });
 
         const createdDate = new Date(job.created_at).toLocaleString('th-TH', {
-            timeZone: 'Asia/Dhaka',
+            timeZone: 'Asia/Bangkok',
             day: '2-digit',
             month: 'short',
             year: 'numeric',
@@ -195,7 +198,7 @@ app.get('/completed', async (req, res) => {
                 <strong>${job.customer}</strong><br>
                 ประเภท: ${job.jobtype}<br>
                 📅 กำหนดส่ง: ${dueDate}<br>
-                🕒 วันที่สร้าง: ${createdDate}<br>
+                🕒 วันที่เสร็จ: ${createdDate}<br>
             </div>
         `;
     }).join('');
