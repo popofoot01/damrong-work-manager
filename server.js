@@ -55,7 +55,7 @@ app.post('/update-status', async (req, res) => {
 });
 
 
-
+//ลบงาน
 app.post('/delete-job', async (req, res) => {
   const { id } = req.body;
 
@@ -158,11 +158,11 @@ app.get('/jobs', async (req, res) => {
             
 
 
-<form href="/edit/${job.id}" 
+<a href="/edit/${job.id}" 
    <button style="background:#e74c3c;color:white;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;">
    แก้ไขงาน
    </button>
-</form>
+</a>
 
 
 
@@ -250,10 +250,24 @@ const localTime = new Date(new Date(job.duetime).getTime() + 6 * 60 * 60 * 1000)
         onclick="window.location.href='/jobs'">
     ยกเลิก
 </button>
+</form>
+
+<form method="POST" action="/delete-job" 
+      onsubmit="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบงานนี้?');"
+      style="display:inline;">
+      
+    <input type="hidden" name="id" value="${job.id}" />
+    
+    <button type="submit" 
+            style="background:#dc2626;color:white;
+                   padding:8px 16px;
+                   border:none;border-radius:6px;
+                   cursor:pointer;margin-left:10px;">
+        ลบงาน
+    </button>
+</form>
 
 
-
-      </form>
     </body>
     </html>
   `);
