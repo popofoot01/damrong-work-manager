@@ -15,33 +15,26 @@ const supabase = createClient(
 
 
 app.post('/add-job', async (req, res) => {
-  const { customer, jobType, dueTime } = req.body;
+    const { customer, jobType, dueTime } = req.body;
 
-  // 👇 แปลงเวลาไทย → UTC ก่อนบันทึก
-  const localDate = new Date(dueTime);
+    const { error } = await supabase
+        .from('jobs')
+        .insert([
+            {
+                customer: customer,
+                jobtype: jobType,   // ต้องเป็น jobType ตรงนี้
+                duetime: dueTime,
+                status: "รอดำเนินการ",
+                notified: false
+            }
+        ]);
 
-  const utcDate = new Date(
-    localDate.getTime() - (localDate.getTimezoneOffset() * 60000)
-  ).toISOString();
+    if (error) {
+        console.error(error);
+        return res.send("เกิดข้อผิดพลาด");
+    }
 
-  const { error } = await supabase
-    .from('jobs')
-    .insert([
-      {
-        customer: customer,
-        jobtype: jobType,
-        duetime: utcDate, // ✅ ใช้ utcDate แทน dueTime
-        status: "รอดำเนินการ",
-        notified: false
-      }
-    ]);
-
-  if (error) {
-    console.error(error);
-    return res.send("เกิดข้อผิดพลาด");
-  }
-
-  res.redirect('/jobs');
+    res.redirect('/jobs');
 });
 
 
