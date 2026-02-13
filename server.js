@@ -936,7 +936,7 @@ button{
 <input name="customer" placeholder="เช่น คุณสมชาย" required autofocus />
 
 <label>ประเภทงาน</label>
-<select name="jobtype" required>
+<select name="jobType" required>
   <option value="">-- เลือกประเภทงาน --</option>
   <option>ไวนิล</option>
   <option>สติ๊กเกอร์</option>
@@ -950,7 +950,7 @@ button{
 <textarea name="note" rows="3" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
 
 <label>กำหนดวันเวลา</label>
-<input type="datetime-local" name="duetime" required />
+<input type="datetime-local" name="dueTime" required />
 
 <button type="button" class="quick-btn" onclick="setOneHour()">⏰ ด่วน +1 ชั่วโมง</button>
 <button type="button" class="quick-btn" onclick="setTomorrow()">📆 พรุ่งนี้ 10:00</button>
