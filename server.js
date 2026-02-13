@@ -114,13 +114,36 @@ app.get('/deleted', async (req, res) => {
         return res.send("โหลดข้อมูลไม่สำเร็จ");
     }
 
-    const jobCards = jobs.map(job => `
-        <div style="border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:6px;">
-            <strong>${job.customer}</strong><br>
-            ประเภท: ${job.jobtype}<br>
-            สถานะ: ${job.status}
-        </div>
-    `).join('');
+    const jobCards = jobs.map(job => {
+
+        const dueDate = new Date(job.duetime).toLocaleString('th-TH', {
+            timeZone: 'Asia/Dhaka',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const createdDate = new Date(job.created_at).toLocaleString('th-TH', {
+            timeZone: 'Asia/Dhaka',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        return `
+            <div style="border:1px solid #ddd;padding:12px;margin-bottom:12px;border-radius:8px;">
+                <strong>${job.customer}</strong><br>
+                ประเภท: ${job.jobtype}<br>
+                📅 กำหนดส่ง: ${dueDate}<br>
+                🕒 วันที่สร้าง: ${createdDate}<br>
+                สถานะ: ${job.status}
+            </div>
+        `;
+    }).join('');
 
     res.send(`
         <h2>งานที่ถูกลบ</h2>
@@ -129,6 +152,7 @@ app.get('/deleted', async (req, res) => {
         ${jobCards || "ไม่มีข้อมูล"}
     `);
 });
+
 
 
 //หน้างานสำเร็จ
@@ -146,15 +170,35 @@ app.get('/completed', async (req, res) => {
         return res.send("โหลดข้อมูลไม่สำเร็จ");
     }
 
-    const jobCards = jobs.map(job => `
-        <div style="border:1px solid #ddd;padding:10px;margin-bottom:10px;border-radius:6px;">
-            <strong>${job.customer}</strong><br>
-            ประเภท: ${job.jobtype}<br>
-            กำหนดส่ง: ${new Date(job.duetime).toLocaleString('th-TH', {
-                timeZone: 'Asia/Dhaka'
-            })}
-        </div>
-    `).join('');
+    const jobCards = jobs.map(job => {
+
+        const dueDate = new Date(job.duetime).toLocaleString('th-TH', {
+            timeZone: 'Asia/Dhaka',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        const createdDate = new Date(job.created_at).toLocaleString('th-TH', {
+            timeZone: 'Asia/Dhaka',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+
+        return `
+            <div style="border:1px solid #ddd;padding:12px;margin-bottom:12px;border-radius:8px;">
+                <strong>${job.customer}</strong><br>
+                ประเภท: ${job.jobtype}<br>
+                📅 กำหนดส่ง: ${dueDate}<br>
+                🕒 วันที่สร้าง: ${createdDate}<br>
+            </div>
+        `;
+    }).join('');
 
     res.send(`
         <h2>งานที่เสร็จแล้ว</h2>
@@ -163,6 +207,7 @@ app.get('/completed', async (req, res) => {
         ${jobCards || "ไม่มีข้อมูล"}
     `);
 });
+
 
 
 
@@ -250,7 +295,7 @@ app.get('/jobs', async (req, res) => {
     </head>
     <body>
         <h1>รายการงานทั้งหมด</h1>
-        
+
         <a href="/completed">งานเสร็จแล้ว</a> |
 <a href="/deleted">งานที่ถูกลบ</a>
 <br><br>
