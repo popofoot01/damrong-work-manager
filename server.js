@@ -244,12 +244,18 @@ app.get('/monitor', async (req, res) => {
         return res.send("โหลดข้อมูลไม่สำเร็จ");
     }
 
-    const now = new Date();
-    const todayString = now.toDateString();
+    // เวลาปัจจุบันแบบ Bangkok
+const nowTH = new Date(
+  new Date().toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+);
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowString = tomorrow.toDateString();
+// วันนี้ (Bangkok)
+const todayTH = new Date(nowTH);
+todayTH.setHours(0,0,0,0);
+
+// พรุ่งนี้ (Bangkok)
+const tomorrowTH = new Date(todayTH);
+tomorrowTH.setDate(tomorrowTH.getDate() + 1);
 
     let todayJobs = [];
     let tomorrowJobs = [];
@@ -259,19 +265,24 @@ app.get('/monitor', async (req, res) => {
 
     jobs.forEach(job => {
 
-        const due = new Date(job.duetime);
-        const diffMinutes = (due - now) / 60000;
+  const dueTH = new Date(
+    new Date(job.dueTime).toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+  );
 
-        // วันนี้
-        if (due.toDateString() === todayString && job.status !== "เสร็จแล้ว") {
-            todayJobs.push({ job, diffMinutes });
-        }
+  const dueDay = new Date(dueTH);
+  dueDay.setHours(0,0,0,0);
 
-        // พรุ่งนี้
-        if (due.toDateString() === tomorrowString && job.status !== "เสร็จแล้ว") {
-            tomorrowJobs.push({ job, diffMinutes });
-        }
+  const diffMinutes = (dueTH - nowTH) / 60000;
 
+  // วันนี้
+  if (dueDay.getTime() === todayTH.getTime() && job.status != "เสร็จแล้ว") {
+    todayJobs.push({ job, diffMinutes });
+  }
+
+  // พรุ่งนี้
+  if (dueDay.getTime() === tomorrowTH.getTime() && job.status != "เสร็จแล้ว") {
+    tomorrowJobs.push({ job, diffMinutes });
+  }
         // แยกสถานะ
         if (job.status === "รอดำเนินการ") pending.push(job);
         else if (job.status === "กำลังทำ") working.push(job);
