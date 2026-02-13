@@ -16,7 +16,7 @@ const supabase = createClient(
 
 app.post('/add-job', async (req, res) => {
     const { customer, jobType, dueTime } = req.body;
-    const thailandTime = new Date(dueTime + ":00+07:00");
+    const thailandTime = new Date(dueTime + ":00+06:00");
     const { error } = await supabase
         .from('jobs')
         .insert([
@@ -116,7 +116,14 @@ app.get('/jobs', async (req, res) => {
             <div class="card">
                 <h3>${job.customer}</h3>
                 <p>ประเภท: ${job.jobtype}</p>
-                <p>กำหนดส่ง: ${new Date(job.duetime).toLocaleString()}</p>
+                <p>กำหนดส่ง: ${new Date(job.duetime).toLocaleString("th-TH", {
+  timeZone: "Asia/Bangkok",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit"
+})}</p>
                 <p style="color:${statusColor}; font-weight:bold;">
                     ${job.status}
                 </p>
@@ -389,7 +396,11 @@ app.get('/api/check-reminder', async (req, res) => {
     if (diffMinutes <= 60 && diffMinutes >= 55) {
 
       await sendLineMessage(
-        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString()}`
+        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString("th-TH", {
+  timeZone: "Asia/Bangkok",
+  dateStyle: "short",
+  timeStyle: "short"
+})}`
       );
 
       await supabase
