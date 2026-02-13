@@ -82,7 +82,7 @@ app.post('/update-job', async (req, res) => {
 
     // 👉 เอาเวลาที่เลือกมา +6 ชั่วโมง
     const adjustedTime = new Date(duetime);
-    adjustedTime.setHours(adjustedTime.getHours() - 6);
+    adjustedTime.setHours(adjustedTime.getHours() - 7);
 
     const { error } = await supabase
         .from('jobs')
@@ -120,7 +120,7 @@ app.get('/deleted', async (req, res) => {
     const jobCards = jobs.map(job => {
 
         const dueDate = new Date(job.duetime).toLocaleString('th-TH', {
-            timeZone: 'Asia/Dhaka',
+            timeZone: 'Asia/Bangkok',
             day: '2-digit',
             month: 'short',
             year: 'numeric',
@@ -176,7 +176,7 @@ app.get('/completed', async (req, res) => {
     const jobCards = jobs.map(job => {
 
         const dueDate = new Date(job.duetime).toLocaleString('th-TH', {
-            timeZone: 'Asia/Dhaka',
+            timeZone: 'Asia/Bangkok',
             day: '2-digit',
             month: 'short',
             year: 'numeric',
@@ -296,7 +296,7 @@ app.get('/monitor', async (req, res) => {
         <strong>${icon} ${job.customer}</strong>
         <span>${job.jobtype}</span>
         <span>${new Date(job.duetime).toLocaleTimeString('th-TH',{
-            timeZone:'Asia/Dhaka',
+            timeZone:'Asia/Bangkok',
             hour:'2-digit',
             minute:'2-digit'
         })}</span>
@@ -312,7 +312,7 @@ app.get('/monitor', async (req, res) => {
             <strong>${job.customer}</strong><br>
             ${job.jobtype}<br>
             ${new Date(job.duetime).toLocaleTimeString('th-TH',{
-                timeZone:'Asia/Dhaka',
+                timeZone:'Asia/Bangkok',
                 hour:'2-digit',
                 minute:'2-digit'
             })}
@@ -559,7 +559,7 @@ app.get('/edit/:id', async (req, res) => {
     .single();
 
   if (error) return res.send("ไม่พบข้อมูล");
-const localTime = new Date(new Date(job.duetime).getTime() + 6 * 60 * 60 * 1000)
+const localTime = new Date(new Date(job.duetime).getTime() + 7 * 60 * 60 * 1000)
   .toISOString()
   .slice(0,16);
 
@@ -816,14 +816,14 @@ app.get('/api/check-reminder', async (req, res) => {
       await sendLineMessage(
         `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nวันที่: ${
   due.toLocaleDateString("th-TH", {
-    timeZone: "Asia/Dhaka",
+    timeZone: "Asia/Bangkok",
     day: "numeric",
     month: "short",
     year: "numeric",
   }) +
   " เวลา " +
   due.toLocaleTimeString("th-TH", {
-    timeZone: "Asia/Dhaka",
+    timeZone: "Asia/Bangkok",
     hour: "2-digit",
     minute: "2-digit",
   }) +
