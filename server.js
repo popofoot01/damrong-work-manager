@@ -118,12 +118,12 @@ app.get('/jobs', async (req, res) => {
                 <p>ประเภท: ${job.jobtype}</p>
                 <p>กำหนดส่ง: ${new Date(job.duetime).toLocaleString("th-TH", {
   timeZone: "Asia/Bangkok",
+  day: "numeric",
+  month: "short",
   year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
   hour: "2-digit",
   minute: "2-digit"
-})}</p>
+}) + " น."}</p>
                 <p style="color:${statusColor}; font-weight:bold;">
                     ${job.status}
                 </p>
