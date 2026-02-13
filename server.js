@@ -608,7 +608,12 @@ app.get('/jobs', async (req, res) => {
             <div class="card">
                 <h3>${job.customer}</h3>
                 <p>ประเภท: ${job.jobtype}</p>
-                ${job.note ? `<p style="color:#9ca3af;">📝 ${job.note}</p>` : ""}
+                
+                ${job.note ? `
+    <p style="background:#1e293b;padding:6px 10px;border-radius:6px;color:#94a3b8;margin:6px 0;">
+        📝 ${job.note}
+    </p>
+` : ""}
                 <p>กำหนดส่ง: ${
   new Date(job.duetime).toLocaleDateString("th-TH", {
     timeZone: "Asia/Bangkok",
