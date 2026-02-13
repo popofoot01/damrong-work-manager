@@ -15,7 +15,7 @@ const supabase = createClient(
 
 //เพิ่มงาน
 app.post('/add-job', async (req, res) => {
-    const { customer, jobtype, duetime, status, note } = req.body;
+    const { customer, jobType, dueTime, status, note } = req.body;
     const thailandTime = new Date(dueTime + ":00+07:00");
     const { error } = await supabase
         .from('jobs')
@@ -92,7 +92,7 @@ app.post('/update-job', async (req, res) => {
             customer: customer,
             jobtype: jobtype,
             duetime: adjustedTime.toISOString(),
-            note,
+            note: note || null,
             notified: false
 })
     .eq('id', id);
