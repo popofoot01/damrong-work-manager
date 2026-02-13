@@ -227,13 +227,14 @@ app.get('/monitor', async (req, res) => {
     }
 
     const now = new Date();
-    const today = now.toDateString();
+    const todayString = now.toDateString();
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowString = tomorrow.toDateString();
 
-    let todayTomorrowJobs = [];
+    let todayJobs = [];
+    let tomorrowJobs = [];
     let pending = [];
     let working = [];
     let completed = [];
@@ -243,43 +244,57 @@ app.get('/monitor', async (req, res) => {
         const due = new Date(job.duetime);
         const diffMinutes = (due - now) / 60000;
 
-        // โซน วันนี้ + พรุ่งนี้ (เฉพาะยังไม่เสร็จ)
-        if (
-            (due.toDateString() === today || due.toDateString() === tomorrowString)
-            && job.status !== "เสร็จสิ้น"
-        ) {
-            todayTomorrowJobs.push({ job, diffMinutes });
+        // วันนี้
+        if (due.toDateString() === todayString && job.status !== "เสร็จสิ้น") {
+            todayJobs.push({ job, diffMinutes });
         }
 
-        // แบ่งสถานะ
+        // พรุ่งนี้
+        if (due.toDateString() === tomorrowString && job.status !== "เสร็จสิ้น") {
+            tomorrowJobs.push({ job, diffMinutes });
+        }
+
+        // แยกสถานะ
         if (job.status === "รอดำเนินการ") pending.push(job);
         else if (job.status === "กำลังทำ") working.push(job);
         else if (job.status === "เสร็จสิ้น") completed.push(job);
     });
 
-    const createCard = (job, diffMinutes = null) => {
+    const createRowCard = (job, diffMinutes = null) => {
 
-        let extraClass = "";
         let bgColor = "#1f2937";
+        let extraClass = "";
 
         if (diffMinutes !== null && diffMinutes <= 30 && diffMinutes > 0) {
-            extraClass = "blink";
             bgColor = "#7f1d1d";
+            extraClass = "blink";
         }
 
         return `
-        <div class="card ${extraClass}" style="background:${bgColor}">
-            <h3>${job.customer}</h3>
-            <p>${job.jobtype}</p>
-            <p>⏰ ${new Date(job.duetime).toLocaleString('th-TH', {
-                timeZone: 'Asia/Dhaka',
-                hour: '2-digit',
-                minute: '2-digit'
-            })}</p>
-            <p>📌 ${job.status}</p>
+        <div class="row-card ${extraClass}" style="background:${bgColor}">
+            <strong>${job.customer}</strong>
+            <span>${job.jobtype}</span>
+            <span>${new Date(job.duetime).toLocaleTimeString('th-TH',{
+                timeZone:'Asia/Dhaka',
+                hour:'2-digit',
+                minute:'2-digit'
+            })}</span>
+            <span>${job.status}</span>
         </div>
         `;
     };
+
+    const createColumnCard = (job) => `
+        <div class="card">
+            <strong>${job.customer}</strong><br>
+            ${job.jobtype}<br>
+            ${new Date(job.duetime).toLocaleTimeString('th-TH',{
+                timeZone:'Asia/Dhaka',
+                hour:'2-digit',
+                minute:'2-digit'
+            })}
+        </div>
+    `;
 
     res.send(`
     <html>
@@ -293,7 +308,7 @@ app.get('/monitor', async (req, res) => {
                 margin: 0;
                 padding: 20px;
             }
-            h1, h2 {
+            h1, h2, h3 {
                 margin-bottom: 10px;
             }
             .dashboard {
@@ -309,17 +324,33 @@ app.get('/monitor', async (req, res) => {
                 flex: 1;
                 text-align: center;
             }
+            .horizontal {
+                display: flex;
+                gap: 10px;
+                flex-wrap: wrap;
+                margin-bottom: 25px;
+            }
+            .row-card {
+                display: flex;
+                gap: 15px;
+                align-items: center;
+                padding: 10px 15px;
+                border-radius: 8px;
+                font-size: 16px;
+            }
             .row {
                 display: flex;
                 gap: 20px;
+                margin-top: 20px;
             }
             .column {
                 flex: 1;
             }
             .card {
-                padding: 15px;
+                background: #1f2937;
+                padding: 10px;
                 margin-bottom: 10px;
-                border-radius: 10px;
+                border-radius: 8px;
             }
             .blink {
                 animation: blink 1s infinite;
@@ -334,28 +365,49 @@ app.get('/monitor', async (req, res) => {
         <h1>📺 MONITOR ระบบงานร้าน</h1>
 
         <div class="dashboard">
-            <div class="box">📅 วันนี้+พรุ่งนี้<br>${todayTomorrowJobs.length} งาน</div>
-            <div class="box">🟡 รอดำเนินการ<br>${pending.length} งาน</div>
-            <div class="box">🔵 กำลังทำ<br>${working.length} งาน</div>
-            <div class="box">🟢 เสร็จแล้ว<br>${completed.length} งาน</div>
+            <div class="box">📅 วันนี้ ${todayJobs.length} งาน</div>
+            <div class="box">📆 พรุ่งนี้ ${tomorrowJobs.length} งาน</div>
+            <div class="box">🟡 รอดำเนินการ ${pending.length}</div>
+            <div class="box">🔵 กำลังทำ ${working.length}</div>
+            <div class="box">🟢 เสร็จแล้ว ${completed.length}</div>
         </div>
 
-        <h2>🔥 วันนี้ + พรุ่งนี้ (ยังไม่เสร็จ)</h2>
-        ${todayTomorrowJobs.map(item => createCard(item.job, item.diffMinutes)).join('')}
+        <h2>
+        🔥 วันนี้ 
+        <span style="font-size:16px;color:#9ca3af;">
+        (${now.toLocaleDateString('th-TH',{ day:'2-digit', month:'short'})})
+        </span>
+        </h2>
+
+        <div class="horizontal">
+        ${todayJobs.map(item => createRowCard(item.job, item.diffMinutes)).join('') || "ไม่มีงานวันนี้"}
+        </div>
+
+        <h2>
+        📆 พรุ่งนี้ 
+        <span style="font-size:16px;color:#9ca3af;">
+        (${tomorrow.toLocaleDateString('th-TH',{ day:'2-digit', month:'short'})})
+        </span>
+        </h2>
+
+        <div class="horizontal">
+        ${tomorrowJobs.map(item => createRowCard(item.job, item.diffMinutes)).join('') || "ไม่มีงานพรุ่งนี้"}
+        </div>
 
         <h2>📊 แยกตามสถานะ</h2>
+
         <div class="row">
             <div class="column">
                 <h3>รอดำเนินการ</h3>
-                ${pending.map(job => createCard(job)).join('')}
+                ${pending.map(createColumnCard).join('')}
             </div>
             <div class="column">
                 <h3>กำลังทำ</h3>
-                ${working.map(job => createCard(job)).join('')}
+                ${working.map(createColumnCard).join('')}
             </div>
             <div class="column">
                 <h3>เสร็จสิ้น</h3>
-                ${completed.map(job => createCard(job)).join('')}
+                ${completed.map(createColumnCard).join('')}
             </div>
         </div>
 
@@ -363,6 +415,7 @@ app.get('/monitor', async (req, res) => {
     </html>
     `);
 });
+
 
 
 
