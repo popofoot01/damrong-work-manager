@@ -245,19 +245,19 @@ app.get('/monitor', async (req, res) => {
         const diffMinutes = (due - now) / 60000;
 
         // วันนี้
-        if (due.toDateString() === todayString && job.status !== "เสร็จสิ้น") {
+        if (due.toDateString() === todayString && job.status !== "เสร็จแล้ว") {
             todayJobs.push({ job, diffMinutes });
         }
 
         // พรุ่งนี้
-        if (due.toDateString() === tomorrowString && job.status !== "เสร็จสิ้น") {
+        if (due.toDateString() === tomorrowString && job.status !== "เสร็จแล้ว") {
             tomorrowJobs.push({ job, diffMinutes });
         }
 
         // แยกสถานะ
         if (job.status === "รอดำเนินการ") pending.push(job);
         else if (job.status === "กำลังทำ") working.push(job);
-        else if (job.status === "เสร็จสิ้น") completed.push(job);
+        else if (job.status === "เสร็จแล้ว") completed.push(job);
     });
 
     const createRowCard = (job, diffMinutes = null) => {
@@ -406,7 +406,7 @@ app.get('/monitor', async (req, res) => {
                 ${working.map(createColumnCard).join('')}
             </div>
             <div class="column">
-                <h3>เสร็จสิ้น</h3>
+                <h3>เสร็จแล้ว</h3>
                 ${completed.map(createColumnCard).join('')}
             </div>
         </div>
