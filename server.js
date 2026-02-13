@@ -211,7 +211,7 @@ app.get('/edit/:id', async (req, res) => {
         วันเวลา:<br>
         <input type="datetime-local" 
                name="duetime" 
-               value="${new Date(job.duetime).toISOString().slice(0,16)}" />
+               value="${localTime}" />
         <br><br>
 
         <button type="submit">บันทึก</button>
