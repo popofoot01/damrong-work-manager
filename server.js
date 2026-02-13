@@ -389,7 +389,9 @@ app.get('/api/check-reminder', async (req, res) => {
     if (diffMinutes <= 60 && diffMinutes >= 0) {
 
       await sendLineMessage(
-        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString()}`
+        `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nเวลา: ${due.toLocaleString("th-TH", {
+    timeZone: "Asia/Bangkok",
+})}`
       );
 
       await supabase
