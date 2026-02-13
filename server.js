@@ -244,23 +244,22 @@ app.get('/monitor', async (req, res) => {
         return res.send("โหลดข้อมูลไม่สำเร็จ");
     }
 
-    
-// เวลาไทยจริง
-const now = new Date();
 
-const thaiNow = new Date(
+// เวลาไทยจริง
+const nowThai = new Date(
   now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
 );
 
-// ตัดเวลาเหลือแค่วัน
-const todayStart = new Date(thaiNow);
-todayStart.setHours(0, 0, 0, 0);
+const todayYear = nowThai.getFullYear();
+const todayMonth = nowThai.getMonth();
+const todayDate = nowThai.getDate();
 
-const tomorrowStart = new Date(todayStart);
-tomorrowStart.setDate(todayStart.getDate() + 1);
+const tomorrowThai = new Date(nowThai);
+tomorrowThai.setDate(todayDate + 1);
 
-const dayAfterTomorrow = new Date(todayStart);
-dayAfterTomorrow.setDate(todayStart.getDate() + 2);
+const tomorrowYear = tomorrowThai.getFullYear();
+const tomorrowMonth = tomorrowThai.getMonth();
+const tomorrowDate = tomorrowThai.getDate();
 
 
     let todayJobs = [];
@@ -271,31 +270,37 @@ dayAfterTomorrow.setDate(todayStart.getDate() + 2);
 
     jobs.forEach(job => {
 
-        const due = new Date(job.duetime);
-
-const dueThai = new Date(
-  due.toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
+        const dueThai = new Date(
+  new Date(job.dueTime).toLocaleString("en-US", {
+    timeZone: "Asia/Bangkok"
+  })
 );
 
+const dueYear = dueThai.getFullYear();
+const dueMonth = dueThai.getMonth();
+const dueDate = dueThai.getDate();
+
         // วันนี้
-     if (
-  dueThai >= todayStart &&
-  dueThai < tomorrowStart &&
+        if (
+  dueYear === todayYear &&
+  dueMonth === todayMonth &&
+  dueDate === todayDate &&
   job.status !== "เสร็จแล้ว"
 ) {
   todayJobs.push({ job, diffMinutes });
 }
 
 
+
         // พรุ่งนี้
        if (
-  dueThai >= tomorrowStart &&
-  dueThai < dayAfterTomorrow &&
+  dueYear === tomorrowYear &&
+  dueMonth === tomorrowMonth &&
+  dueDate === tomorrowDate &&
   job.status !== "เสร็จแล้ว"
 ) {
   tomorrowJobs.push({ job, diffMinutes });
 }
-
 
 
 
