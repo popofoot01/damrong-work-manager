@@ -237,7 +237,7 @@ app.get('/monitor', async (req, res) => {
         .from('jobs')
         .select('*')
         .eq('is_deleted', false)
-        .order('duetime', { ascending: true });
+        .order('dueTime', { ascending: true });
 
     if (error) {
         console.error(error);
@@ -245,11 +245,21 @@ app.get('/monitor', async (req, res) => {
     }
 
     const now = new Date();
-    const todayString = now.toDateString();
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowString = tomorrow.toDateString();
+// วันนี้
+const today = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate()
+);
+
+// พรุ่งนี้
+const tomorrow = new Date(
+  now.getFullYear(),
+  now.getMonth(),
+  now.getDate() + 1
+);
+
 
     let todayJobs = [];
     let tomorrowJobs = [];
@@ -258,29 +268,29 @@ app.get('/monitor', async (req, res) => {
     let completed = [];
 
     jobs.forEach(job => {
+  const due = new Date(job.dueTime);
 
-        const due = new Date(job.duetime);
-        const diffMinutes = (due - now) / 60000;
+  const dueDateOnly = new Date(
+    due.getFullYear(),
+    due.getMonth(),
+    due.getDate()
+  );
 
-        // วันนี้
-        if (
-    due.getFullYear() === now.getFullYear() &&
-    due.getMonth() === now.getMonth() &&
-    due.getDate() === now.getDate() &&
-    job.status != "เสร็จแล้ว"
-) {
-    todayJobs.push({ job, diffMinutes });
-}
+  // 🔥 วันนี้
+  if (
+    dueDateOnly.getTime() === today.getTime() &&
+    job.status !== "เสร็จแล้ว"
+  ) {
+    todayJobs.push(job);
+  }
 
-        // พรุ่งนี้
-        if (
-    due.getFullYear() === tomorrow.getFullYear() &&
-    due.getMonth() === tomorrow.getMonth() &&
-    due.getDate() === tomorrow.getDate() &&
-    job.status != "เสร็จแล้ว"
-) {
-    tomorrowJobs.push({ job, diffMinutes });
-}
+  // 🔥 พรุ่งนี้
+  if (
+    dueDateOnly.getTime() === tomorrow.getTime() &&
+    job.status !== "เสร็จแล้ว"
+  ) {
+    tomorrowJobs.push(job);
+  }
 
 
         // แยกสถานะ
