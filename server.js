@@ -244,9 +244,10 @@ app.get('/monitor', async (req, res) => {
         return res.send("โหลดข้อมูลไม่สำเร็จ");
     }
 
+ 
 
 // เวลาไทยจริง
-const nowThai = new Date(
+const now = new Date(
   now.toLocaleString("en-US", { timeZone: "Asia/Bangkok" })
 );
 
