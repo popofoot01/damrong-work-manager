@@ -212,6 +212,78 @@ app.get('/completed', async (req, res) => {
 });
 
 
+//หน้าสถานะงาน
+app.get('/monitor', async (req, res) => {
+
+    const { data: jobs, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('is_deleted', false)
+        .order('duetime', { ascending: true });
+
+    if (error) {
+        console.error(error);
+        return res.send("โหลดข้อมูลไม่สำเร็จ");
+    }
+
+    const now = new Date();
+
+    const jobCards = jobs.map(job => {
+
+        const due = new Date(job.duetime);
+        const diffMinutes = (due - now) / 60000;
+
+        let color = "#e5e7eb"; // ปกติ
+        let blinkClass = "";
+
+        if (job.status === "เสร็จสิ้น") {
+            color = "#bbf7d0"; // เขียว
+        } else if (diffMinutes <= 60 && diffMinutes > 0) {
+            color = "#fecaca"; // แดง
+            blinkClass = "blink";
+        }
+
+        return `
+        <div class="card ${blinkClass}" style="background:${color}">
+            <h3>${job.customer}</h3>
+            <p>${job.jobtype}</p>
+            <p>กำหนดส่ง: ${due.toLocaleString('th-TH', {
+                timeZone: 'Asia/Dhaka',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}</p>
+            <p>สถานะ: ${job.status}</p>
+        </div>
+        `;
+    }).join('');
+
+    res.send(`
+        <html>
+        <head>
+            <meta http-equiv="refresh" content="30">
+            <style>
+                body { font-family: sans-serif; background:#111; color:white; }
+                .card {
+                    padding:20px;
+                    margin:10px;
+                    border-radius:10px;
+                    font-size:20px;
+                }
+                .blink {
+                    animation: blink 1s infinite;
+                }
+                @keyframes blink {
+                    50% { opacity: 0.4; }
+                }
+            </style>
+        </head>
+        <body>
+            <h1>📺 MONITOR งานวันนี้</h1>
+            ${jobCards}
+        </body>
+        </html>
+    `);
+});
 
 
 
