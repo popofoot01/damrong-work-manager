@@ -158,11 +158,11 @@ app.get('/jobs', async (req, res) => {
             
 
 
- href="/edit/${job.id}" 
+<form href="/edit/${job.id}" 
    <button style="background:#e74c3c;color:white;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;">
    แก้ไขงาน
    </button>
-
+</form>
 
 
 
