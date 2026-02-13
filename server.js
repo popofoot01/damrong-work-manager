@@ -187,6 +187,7 @@ app.get('/jobs', async (req, res) => {
 
 //แสดงหน้าแก้ไข
 app.get('/edit/:id', async (req, res) => {
+    const thailandTime = new Date(dueTime + ":00+06:00");
   const { data: job, error } = await supabase
     .from('jobs')
     .select('*')
@@ -209,9 +210,9 @@ app.get('/edit/:id', async (req, res) => {
         <input name="jobtype" value="${job.jobtype}" /><br><br>
 
         วันเวลา:<br>
-        <input type="datetime-local" 
-               name="duetime" 
-               value="${new Date(job.duetime).toISOString().slice(0,16)}" />
+        <input type="thailandTime.toISOString()"
+       name="duetime"
+       value="${localTime}" />
         <br><br>
 
         <button type="submit">บันทึก</button>
