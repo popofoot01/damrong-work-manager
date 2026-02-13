@@ -164,7 +164,7 @@ app.get('/completed', async (req, res) => {
     const { data: jobs, error } = await supabase
         .from('jobs')
         .select('*')
-        .eq('status', 'เสร็จสิ้น')
+        .eq('status', 'เสร็จแล้ว')
         .eq('is_deleted', false)
         .order('duetime', { ascending: false });
 
