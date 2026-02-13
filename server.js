@@ -187,9 +187,6 @@ app.get('/jobs', async (req, res) => {
 
 //แสดงหน้าแก้ไข
 app.get('/edit/:id', async (req, res) => {
-    const localTime = new Date(new Date(job.duetime).getTime() + 6 * 60 * 60 * 1000)
-  .toISOString()
-  .slice(0,16);
 
   const { data: job, error } = await supabase
     .from('jobs')
@@ -197,6 +194,9 @@ app.get('/edit/:id', async (req, res) => {
     .eq('id', req.params.id)
     .single();
 
+    const localTime = new Date(new Date(job.duetime).getTime() + 6 * 60 * 60 * 1000)
+  .toISOString()
+  .slice(0,16);
   if (error) return res.send("ไม่พบข้อมูล");
 
   res.send(`
