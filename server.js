@@ -245,11 +245,18 @@ app.get('/monitor', async (req, res) => {
     }
 
     const now = new Date();
-    const todayString = now.toDateString();
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowString = tomorrow.toDateString();
+const todayThai = now.toLocaleDateString("th-TH", {
+    timeZone: "Asia/Bangkok"
+});
+
+const tomorrowObj = new Date(now);
+tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+
+const tomorrowThai = tomorrowObj.toLocaleDateString("th-TH", {
+    timeZone: "Asia/Bangkok"
+});
+
 
     let todayJobs = [];
     let tomorrowJobs = [];
@@ -259,26 +266,19 @@ app.get('/monitor', async (req, res) => {
 
     jobs.forEach(job => {
 
-        const due = new Date(job.duetime);
-        const diffMinutes = (due - now) / 60000;
+        const dueThaiDate = new Date(job.dueTime).toLocaleDateString("th-TH", {
+    timeZone: "Asia/Bangkok"
+});
+
 
         // วันนี้
-        if (
-    due.getFullYear() === now.getFullYear() &&
-    due.getMonth() === now.getMonth() &&
-    due.getDate() === now.getDate() &&
-    job.status != "เสร็จแล้ว"
-) {
+        if (dueThaiDate === todayThai && job.status !== "เสร็จแล้ว") {
     todayJobs.push({ job, diffMinutes });
 }
 
+
         // พรุ่งนี้
-        if (
-    due.getFullYear() === tomorrow.getFullYear() &&
-    due.getMonth() === tomorrow.getMonth() &&
-    due.getDate() === tomorrow.getDate() &&
-    job.status != "เสร็จแล้ว"
-) {
+       if (dueThaiDate === tomorrowThai && job.status !== "เสร็จแล้ว") {
     tomorrowJobs.push({ job, diffMinutes });
 }
 
@@ -366,7 +366,7 @@ app.get('/monitor', async (req, res) => {
 
     // 🟣 เลยกำหนด
     if (diffMinutes < 0 && job.status !== "เสร็จสิ้น") {
-        bgColor = "#4c1d95";
+        bgColor = "#ff6017ff";
         icon = "🟣";
     }
 
