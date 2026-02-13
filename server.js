@@ -16,7 +16,7 @@ const supabase = createClient(
 
 app.post('/add-job', async (req, res) => {
     const { customer, jobType, dueTime } = req.body;
-    const thailandTime = new Date(dueTime + ":00+06:00");
+    const thailandTime = new Date(dueTime + ":00+07:00");
     const { error } = await supabase
         .from('jobs')
         .insert([
@@ -481,14 +481,14 @@ app.get('/jobs', async (req, res) => {
                 <p>ประเภท: ${job.jobtype}</p>
                 <p>กำหนดส่ง: ${
   new Date(job.duetime).toLocaleDateString("th-TH", {
-    timeZone: "Asia/Dhaka",
+    timeZone: "AAsia/Bangkok",
     day: "numeric",
     month: "short",
     year: "numeric",
   }) +
   " เวลา " +
   new Date(job.duetime).toLocaleTimeString("th-TH", {
-    timeZone: "Asia/Dhaka",
+    timeZone: "Asia/Bangkok",
     hour: "2-digit",
     minute: "2-digit",
   }) +
