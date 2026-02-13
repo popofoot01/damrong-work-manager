@@ -622,14 +622,14 @@ app.get('/jobs', async (req, res) => {
     </head>
     <body>
         <h1>รายการงานทั้งหมด</h1>
-
+        <a href="/">⬅ กลับหน้าเพิ่มงาน</a>
         <a href="/completed">งานเสร็จแล้ว</a> |
 <a href="/deleted">งานที่ถูกลบ</a>
 <br><br>
 
         ${jobCards || "<p>ยังไม่มีงาน</p>"}
         <br>
-        <a href="/">⬅ กลับหน้าเพิ่มงาน</a>
+        
     </body>
     </html>
     `);
