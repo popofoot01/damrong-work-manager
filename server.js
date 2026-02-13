@@ -25,7 +25,7 @@ app.post('/add-job', async (req, res) => {
                 jobtype: jobType,   // ต้องเป็น jobType ตรงนี้
                 duetime: thailandTime.toISOString(),
                 status: "รอดำเนินการ",
-                note,
+                note: note || null,
                 notified: false
                 
             }
@@ -608,7 +608,12 @@ app.get('/jobs', async (req, res) => {
             <div class="card">
                 <h3>${job.customer}</h3>
                 <p>ประเภท: ${job.jobtype}</p>
-                
+                ${job.note ? `
+<p style="background:#1e293b;padding:6px 10px;border-radius:6px;color:#94a3b8;">
+📝 ${job.note}
+</p>
+` : ``}
+
                 <p>กำหนดส่ง: ${
   new Date(job.duetime).toLocaleDateString("th-TH", {
     timeZone: "Asia/Bangkok",
