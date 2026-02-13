@@ -16,7 +16,7 @@ const supabase = createClient(
 
 app.post('/add-job', async (req, res) => {
     const { customer, jobType, dueTime } = req.body;
-    const thailandTime = new Date(dueTime + ":00+07:00");
+    const thailandTime = new Date(dueTime + ":00+05:00");
     const { error } = await supabase
         .from('jobs')
         .insert([
@@ -82,7 +82,7 @@ app.post('/update-job', async (req, res) => {
 
     // 👉 เอาเวลาที่เลือกมา +6 ชั่วโมง
     const adjustedTime = new Date(duetime);
-    adjustedTime.setHours(adjustedTime.getHours() - 6);
+    adjustedTime.setHours(adjustedTime.getHours() - 5);
 
     const { error } = await supabase
         .from('jobs')
