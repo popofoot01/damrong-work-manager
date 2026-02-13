@@ -375,6 +375,18 @@ app.get('/monitor', async (req, res) => {
                 margin-bottom: 10px;
                 border-radius: 8px;
             }
+
+            #clock {
+                position: fixed;
+                top: 20px;
+                right: 30px;
+                font-size: 28px;
+                font-weight: bold;
+                color: #e5e7eb;
+                letter-spacing: 2px;
+            }
+
+
             .blink-red {
     animation: blinkRed 0.6s infinite;
 }
@@ -395,7 +407,7 @@ app.get('/monitor', async (req, res) => {
         </style>
     </head>
     <body>
-
+        <div id="clock"></div>
         <h1>📺 MONITOR ระบบงานร้านดำรงค์อิงค์เจ็ท ท่าใหม่</h1>
 
         <div class="dashboard">
@@ -444,6 +456,27 @@ app.get('/monitor', async (req, res) => {
                 ${completed.map(createColumnCard).join('')}
             </div>
         </div>
+
+        <script>
+function updateClock() {
+    const now = new Date();
+
+    const options = {
+        timeZone: "Asia/Bangkok",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+    };
+
+    const timeString = now.toLocaleTimeString("th-TH", options);
+
+    document.getElementById("clock").innerText = timeString;
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+</script>
+
 
     </body>
     </html>
