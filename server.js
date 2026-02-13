@@ -186,29 +186,40 @@ app.get('/jobs', async (req, res) => {
 });
 
 //แสดงหน้าแก้ไข
-app.get('/edit-job/:id', async (req, res) => {
-  const { id } = req.params;
-
-  const { data: job } = await supabase
+app.get('/edit/:id', async (req, res) => {
+  const { data: job, error } = await supabase
     .from('jobs')
     .select('*')
-    .eq('id', id)
+    .eq('id', req.params.id)
     .single();
 
-  if (!job) return res.send("ไม่พบงาน");
+  if (error) return res.send("ไม่พบข้อมูล");
 
   res.send(`
-    <h2>แก้ไขงาน</h2>
-    <form method="POST" action="/update-job">
-      <input type="hidden" name="id" value="${job.id}" />
-      ชื่อลูกค้า: <input name="customer" value="${job.customer}" /><br><br>
-      ประเภทงาน: <input name="jobType" value="${job.jobtype}" /><br><br>
-      วันส่งงาน: <input type="datetime-local" name="dueTime" value="${new Date(job.duetime).toISOString().slice(0,16)}" /><br><br>
-      <button>บันทึก</button>
-    </form>
+    <html>
+    <body style="background:#0f172a;color:white;font-family:Arial;padding:30px;">
+      <h2>แก้ไขงาน</h2>
+      <form method="POST" action="/update-job">
+        <input type="hidden" name="id" value="${job.id}" />
+
+        ชื่อลูกค้า:<br>
+        <input name="customer" value="${job.customer}" /><br><br>
+
+        ประเภทงาน:<br>
+        <input name="jobtype" value="${job.jobtype}" /><br><br>
+
+        วันเวลา:<br>
+        <input type="datetime-local" 
+               name="duetime" 
+               value="${new Date(job.duetime).toISOString().slice(0,16)}" />
+        <br><br>
+
+        <button type="submit">บันทึก</button>
+      </form>
+    </body>
+    </html>
   `);
 });
-
 
 
 
