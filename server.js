@@ -16,14 +16,14 @@ const supabase = createClient(
 
 app.post('/add-job', async (req, res) => {
     const { customer, jobType, dueTime } = req.body;
-    
+    const thailandTime = new Date(dueTime + ":00+06:00");
     const { error } = await supabase
         .from('jobs')
         .insert([
             {
                 customer: customer,
                 jobtype: jobType,   // ต้องเป็น jobType ตรงนี้
-                duetime: new Date(dueTime),
+                duetime: thailandTime.toISOString(),
                 status: "รอดำเนินการ",
                 notified: false
             }
@@ -118,14 +118,14 @@ app.get('/jobs', async (req, res) => {
                 <p>ประเภท: ${job.jobtype}</p>
                 <p>กำหนดส่ง: ${
   new Date(job.duetime).toLocaleDateString("th-TH", {
-    timeZone: "Asia/Bangkok",
+    timeZone: "Asia/Dhaka",
     day: "numeric",
     month: "short",
     year: "numeric",
   }) +
   " เวลา " +
   new Date(job.duetime).toLocaleTimeString("th-TH", {
-    timeZone: "Asia/Bangkok",
+    timeZone: "Asia/Dhaka",
     hour: "2-digit",
     minute: "2-digit",
   }) +
@@ -405,14 +405,14 @@ app.get('/api/check-reminder', async (req, res) => {
       await sendLineMessage(
         `🔔 เตือนงาน\nลูกค้า: ${job.customer}\nประเภท: ${job.jobtype}\nวันที่: ${
   due.toLocaleDateString("th-TH", {
-    timeZone: "Asia/Bangkok",
+    timeZone: "Asia/Dhaka",
     day: "numeric",
     month: "short",
     year: "numeric",
   }) +
   " เวลา " +
   due.toLocaleTimeString("th-TH", {
-    timeZone: "Asia/Bangkok",
+    timeZone: "Asia/Dhaka",
     hour: "2-digit",
     minute: "2-digit",
   }) +
