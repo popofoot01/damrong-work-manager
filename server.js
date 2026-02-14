@@ -796,7 +796,7 @@ app.get('/monitor', async (req, res) => {
     }
 
     .clock {
-      font-size:28px;
+      font-size:40px;
       font-weight:bold;
     }
 
@@ -865,6 +865,32 @@ app.get('/monitor', async (req, res) => {
       border-radius:10px;
     }
 
+    .legend {
+        margin: 10px 0 20px 0;
+        display:flex;
+        gap:20px;
+        font-size:14px;
+        opacity:0.85;
+    }
+
+    .legend-item {
+        padding:6px 10px;
+        border-radius:6px;
+    }
+
+    .legend-item.blue {
+        background:#1e3a8a;
+    }
+
+    .legend-item.orange {
+        background:#7c2d12;
+    }
+
+    .legend-item.red {
+        background:#7f1d1d;
+    }
+
+
   </style>
 
   <script>
@@ -891,6 +917,12 @@ app.get('/monitor', async (req, res) => {
       <div>🔵 กำลังทำ ${working}</div>
       <div>🟢 เสร็จแล้ว ${completed}</div>
       <div>📦 ยังไม่เสร็จ ${notFinishedTotal}</div>
+    </div>
+
+    <div class="legend">
+        <span class="legend-item blue">🔵 กำลังทำ</span>
+        <span class="legend-item orange">🟠 ใกล้ 1 ชม.</span>
+        <span class="legend-item red">🔴 เลยกำหนด</span>
     </div>
 
     <div class="columns">
