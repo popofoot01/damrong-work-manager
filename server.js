@@ -251,6 +251,7 @@ app.get('/monitor', async (req, res) => {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowString = tomorrow.toDateString();
 
+    let installationUpcoming = [];
     let todayJobs = [];
     let tomorrowJobs = [];
     let pending = [];
@@ -261,6 +262,16 @@ app.get('/monitor', async (req, res) => {
 
         const due = new Date(job.duetime);
         const diffMinutes = (due - now) / 60000;
+        const diffDays = Math.floor((due - now) / (1000 * 60 * 60 * 24));
+
+if (
+  job.jobtype === "ติดตั้ง" &&
+  job.status !== "เสร็จแล้ว" &&
+  diffDays <= 2 && diffDays >= 0
+) {
+  installationUpcoming.push(job);
+}
+
 
         // วันนี้
         if (
@@ -363,6 +374,35 @@ app.get('/monitor', async (req, res) => {
     let badge = "";
     let bgColor = "#1f2937";
     let icon = "🟡";
+
+
+const installSection = `
+<h2 style="margin-top:40px;">📦 งานติดตั้งใกล้ถึงกำหนด</h2>
+${
+  installationUpcoming.length === 0
+  ? "<p style='opacity:0.6;'>ไม่มีงานติดตั้งใกล้ถึงกำหนด</p>"
+  : installationUpcoming.map(job => {
+      const dueText = new Date(job.duetime).toLocaleDateString("th-TH", {
+        timeZone: "Asia/Bangkok",
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+
+      return `
+      <div class="install-card">
+        🔴 <strong>${job.customer}</strong>
+        <span>${job.jobtype}</span>
+        <span>📅 ${dueText}</span>
+      </div>
+      `;
+    }).join("")
+}
+`;
+
+
+
+
 
     // 🟣 เลยกำหนด
     if (diffMinutes < 0 && job.status !== "เสร็จสิ้น") {
@@ -489,6 +529,22 @@ if (dueBKK.toDateString() === tomorrowBKK.toDateString()) {
                 font-weight:bold;
             }
 
+            .install-alert {
+                background: #3a1a1a;
+                border-left: 4px solid #ff4d4d;
+            }
+            
+            .install-card {
+                background: #2a1a1a;
+                border-left: 5px solid #ff4d4d;
+                padding: 10px 14px;
+                border-radius: 8px;
+                margin-bottom: 8px;
+                display: flex;
+                gap: 14px;
+                align-items: center;
+            }
+
 
 
             .blink-red {
@@ -539,6 +595,7 @@ if (dueBKK.toDateString() === tomorrowBKK.toDateString()) {
         <div class="horizontal">
         ${tomorrowJobs.map(item => createRowCard(item.job, item.diffMinutes)).join('') || "ไม่มีงานพรุ่งนี้"}
         </div>
+
 
        <h2>📊 แยกตามสถานะ</h2>
 
