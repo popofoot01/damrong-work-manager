@@ -1070,6 +1070,7 @@ app.get('/jobs', async (req, res) => {
     .neq('status', 'เสร็จแล้ว')
     .order('duetime', { ascending: true });
 
+  // ===== กรองวันที่ (server-side) =====
   if (selectedDate) {
     const start = new Date(selectedDate);
     const end = new Date(selectedDate);
@@ -1081,7 +1082,6 @@ app.get('/jobs', async (req, res) => {
   }
 
   const { data: jobs, error } = await query;
-
   if (error) return res.send("โหลดข้อมูลไม่สำเร็จ");
 
   const now = new Date();
@@ -1179,19 +1179,26 @@ app.get('/jobs', async (req, res) => {
     .filter-bar{
       display:flex;
       gap:10px;
-      margin-bottom:20px;
+      margin-bottom:15px;
       flex-wrap:wrap;
     }
 
-    input[type="date"]{
-      padding:8px;
-      border-radius:6px;
+    input[type="date"],
+    input[type="text"]{
+      padding:10px;
+      border-radius:8px;
       border:none;
+      font-size:14px;
+    }
+
+    input[type="text"]{
+      flex:1;
+      min-width:200px;
     }
 
     button{
       padding:8px 12px;
-      border-radius:6px;
+      border-radius:8px;
       border:none;
       background:#2563eb;
       color:white;
@@ -1236,6 +1243,19 @@ app.get('/jobs', async (req, res) => {
     }
 
   </style>
+
+  <script>
+    function searchJobs(){
+      let input = document.getElementById("search").value.toLowerCase();
+      let rows = document.getElementsByClassName("job-row");
+
+      for(let i=0;i<rows.length;i++){
+        let text = rows[i].innerText.toLowerCase();
+        rows[i].style.display = text.includes(input) ? "flex" : "none";
+      }
+    }
+  </script>
+
   </head>
 
   <body>
@@ -1253,8 +1273,10 @@ app.get('/jobs', async (req, res) => {
       <form method="GET" action="/jobs">
         <input type="date" name="date" value="${selectedDate}">
         <button type="submit">กรองวันที่</button>
-        <a href="/jobs" style="color:#94a3b8;margin-left:10px;">ล้างตัวกรอง</a>
+        <a href="/jobs" style="color:#94a3b8;margin-left:8px;">ล้าง</a>
       </form>
+
+      <input type="text" id="search" onkeyup="searchJobs()" placeholder="🔎 ค้นหาลูกค้า / ประเภท / หมายเหตุ">
     </div>
 
     <div class="columns">
