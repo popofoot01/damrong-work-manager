@@ -231,7 +231,7 @@ app.get('/completed', async (req, res) => {
 
 
 //หน้าสถานะงาน
-app.get('/monitor', async (req, res) => {
+/*app.get('/monitor', async (req, res) => {
 
     const { data: jobs, error } = await supabase
         .from('jobs')
@@ -673,8 +673,236 @@ setInterval(updateDateLabels, 60000);
     </body>
     </html>
     `);
-});
+}); */
 
+app.get('/monitor', async (req, res) => {
+
+  const { data: jobs, error } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('is_deleted', false)
+    .order('duetime', { ascending: true });
+
+  if (error) {
+    console.error(error);
+    return res.send("โหลดข้อมูลไม่สำเร็จ");
+  }
+
+  const now = new Date();
+
+  // ===== จัดกลุ่ม =====
+  let todayJobs = [];
+  let tomorrowJobs = [];
+  let pendingToday = [];
+  let workingToday = [];
+  let installationUpcoming = [];
+
+  const today = new Date();
+  const tomorrow = new Date();
+  tomorrow.setDate(today.getDate() + 1);
+
+  jobs.forEach(job => {
+
+    if (job.status === "เสร็จแล้ว") return;
+
+    const due = new Date(job.duetime);
+
+    // ===== วันนี้ =====
+    if (
+      due.getFullYear() === today.getFullYear() &&
+      due.getMonth() === today.getMonth() &&
+      due.getDate() === today.getDate()
+    ) {
+      todayJobs.push(job);
+
+      if (job.status === "รอดำเนินการ") pendingToday.push(job);
+      if (job.status === "กำลังทำ") workingToday.push(job);
+    }
+
+    // ===== พรุ่งนี้ =====
+    if (
+      due.getFullYear() === tomorrow.getFullYear() &&
+      due.getMonth() === tomorrow.getMonth() &&
+      due.getDate() === tomorrow.getDate()
+    ) {
+      tomorrowJobs.push(job);
+    }
+
+    // ===== งานติดตั้งใกล้ถึงกำหนด =====
+    if (job.jobtype === "ติดตั้ง") {
+
+      const diffDays = Math.floor((due - now) / (1000 * 60 * 60 * 24));
+
+      if (diffDays <= 2) {
+        installationUpcoming.push({ job, diffDays });
+      }
+    }
+
+  });
+
+  // ===== helper =====
+  function formatDate(d) {
+    return new Date(d).toLocaleDateString("th-TH", {
+      timeZone: "Asia/Bangkok",
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+  }
+
+  function formatTime(d) {
+    return new Date(d).toLocaleTimeString("th-TH", {
+      timeZone: "Asia/Bangkok",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  // ===== render row =====
+  function renderRow(job) {
+    return `
+      <div class="row-card">
+        <strong>${job.customer}</strong>
+        <span>${job.jobtype}</span>
+        <span>${formatTime(job.duetime)}</span>
+        <span class="status">${job.status}</span>
+      </div>
+    `;
+  }
+
+  // ===== render installation =====
+  function renderInstall(item) {
+
+    let colorClass = "";
+    let text = "";
+
+    if (item.diffDays === 2) {
+      colorClass = "orange";
+      text = "เหลือ 2 วัน";
+    } else if (item.diffDays === 1) {
+      colorClass = "red";
+      text = "เหลือ 1 วัน";
+    } else if (item.diffDays <= 0) {
+      colorClass = "blink";
+      text = "เลยกำหนด";
+    }
+
+    return `
+      <div class="install-card ${colorClass}">
+        <strong>${item.job.customer}</strong>
+        <span>📅 ${formatDate(item.job.duetime)}</span>
+        <span>${text}</span>
+      </div>
+    `;
+  }
+
+  // ===== HTML =====
+  res.send(`
+  <html>
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="30">
+    <title>MONITOR</title>
+    <style>
+      body {
+        background:#0f172a;
+        color:white;
+        font-family:Arial;
+        padding:30px;
+      }
+
+      h2 {
+        margin-top:40px;
+      }
+
+      .row-card {
+        background:#1e293b;
+        padding:10px 14px;
+        border-radius:8px;
+        margin-bottom:8px;
+        display:flex;
+        gap:20px;
+        align-items:center;
+      }
+
+      .status {
+        opacity:0.7;
+      }
+
+      .install-card {
+        background:#1e293b;
+        padding:10px 14px;
+        border-radius:8px;
+        margin-bottom:8px;
+        display:flex;
+        gap:20px;
+        align-items:center;
+      }
+
+      .orange {
+        border-left:5px solid orange;
+      }
+
+      .red {
+        border-left:5px solid red;
+      }
+
+      .blink {
+        border-left:5px solid red;
+        animation: blink 1s infinite;
+      }
+
+      @keyframes blink {
+        50% { background:#7f1d1d; }
+      }
+
+      .clock {
+        position:fixed;
+        top:20px;
+        right:30px;
+        font-size:26px;
+        font-weight:bold;
+      }
+    </style>
+  </head>
+
+  <body>
+
+  <div class="clock" id="clock"></div>
+
+  <h1>📺 MONITOR ระบบงานร้านดำรงค์อิงค์เจ็ท</h1>
+
+  <h2>🔥 วันนี้</h2>
+  ${todayJobs.length === 0 ? "ไม่มีงานวันนี้" : todayJobs.map(renderRow).join("")}
+
+  <h2>📅 พรุ่งนี้</h2>
+  ${tomorrowJobs.length === 0 ? "ไม่มีงานพรุ่งนี้" : tomorrowJobs.map(renderRow).join("")}
+
+  <h2>📊 สถานะวันนี้</h2>
+  <h3>รอดำเนินการ</h3>
+  ${pendingToday.length === 0 ? "ไม่มี" : pendingToday.map(renderRow).join("")}
+
+  <h3>กำลังทำ</h3>
+  ${workingToday.length === 0 ? "ไม่มี" : workingToday.map(renderRow).join("")}
+
+  <h2>📦 งานติดตั้งใกล้ถึงกำหนด</h2>
+  ${installationUpcoming.length === 0 ? "ไม่มีงานติดตั้งใกล้ถึงกำหนด" : installationUpcoming.map(renderInstall).join("")}
+
+  <script>
+    function updateClock() {
+      const now = new Date();
+      document.getElementById("clock").innerText =
+        now.toLocaleTimeString("th-TH", { timeZone: "Asia/Bangkok" });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+
+  </body>
+  </html>
+  `);
+
+});
 
 
 
