@@ -293,6 +293,33 @@ if (
     tomorrowJobs.push({ job, diffMinutes });
 }
 
+const installSection = `
+<h2 style="margin-top:40px;">📦 งานติดตั้งใกล้ถึงกำหนด</h2>
+${
+  installationUpcoming.length === 0
+  ? "<p style='opacity:0.6;'>ไม่มีงานติดตั้งใกล้ถึงกำหนด</p>"
+  : installationUpcoming.map(job => {
+      const dueText = new Date(job.duetime).toLocaleDateString("th-TH", {
+        timeZone: "Asia/Bangkok",
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      });
+
+      return `
+      <div class="install-card">
+        🔴 <strong>${job.customer}</strong>
+        <span>${job.jobtype}</span>
+        <span>📅 ${dueText}</span>
+      </div>
+      `;
+    }).join("")
+}
+`;
+
+
+
+
 
         // แยกสถานะ
         if (job.status === "รอดำเนินการ") pending.push(job);
@@ -374,32 +401,6 @@ if (
     let badge = "";
     let bgColor = "#1f2937";
     let icon = "🟡";
-
-
-const installSection = `
-<h2 style="margin-top:40px;">📦 งานติดตั้งใกล้ถึงกำหนด</h2>
-${
-  installationUpcoming.length === 0
-  ? "<p style='opacity:0.6;'>ไม่มีงานติดตั้งใกล้ถึงกำหนด</p>"
-  : installationUpcoming.map(job => {
-      const dueText = new Date(job.duetime).toLocaleDateString("th-TH", {
-        timeZone: "Asia/Bangkok",
-        day: "numeric",
-        month: "short",
-        year: "numeric"
-      });
-
-      return `
-      <div class="install-card">
-        🔴 <strong>${job.customer}</strong>
-        <span>${job.jobtype}</span>
-        <span>📅 ${dueText}</span>
-      </div>
-      `;
-    }).join("")
-}
-`;
-
 
 
 
