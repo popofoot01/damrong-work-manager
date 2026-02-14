@@ -1061,12 +1061,26 @@ app.get('/monitor', async (req, res) => {
 }); */ 
 app.get('/jobs', async (req, res) => {
 
-  const { data: jobs, error } = await supabase
+  const selectedDate = req.query.date || "";
+
+  let query = supabase
     .from('jobs')
     .select('*')
     .eq('is_deleted', false)
     .neq('status', 'เสร็จแล้ว')
     .order('duetime', { ascending: true });
+
+  if (selectedDate) {
+    const start = new Date(selectedDate);
+    const end = new Date(selectedDate);
+    end.setDate(end.getDate() + 1);
+
+    query = query
+      .gte('duetime', start.toISOString())
+      .lt('duetime', end.toISOString());
+  }
+
+  const { data: jobs, error } = await query;
 
   if (error) return res.send("โหลดข้อมูลไม่สำเร็จ");
 
@@ -1091,7 +1105,7 @@ app.get('/jobs', async (req, res) => {
     });
   }
 
-  const todayJobs = jobs.filter(j => 
+  const todayJobs = jobs.filter(j =>
     isSameDate(new Date(j.duetime), now)
   );
 
@@ -1138,11 +1152,7 @@ app.get('/jobs', async (req, res) => {
       padding:20px;
     }
 
-    h1{
-      margin-bottom:15px;
-    }
-
-    /* ===== เมนูด้านบน ===== */
+    h1{margin-bottom:15px}
 
     .top-menu{
       display:grid;
@@ -1164,24 +1174,29 @@ app.get('/jobs', async (req, res) => {
 
     .menu-btn:hover{
       background:#2563eb;
-      transform:translateY(-2px);
     }
 
-    /* ===== ค้นหา ===== */
-
-    .search-box{
+    .filter-bar{
+      display:flex;
+      gap:10px;
       margin-bottom:20px;
+      flex-wrap:wrap;
     }
 
-    input[type="text"]{
-      width:100%;
-      padding:12px;
-      border-radius:8px;
+    input[type="date"]{
+      padding:8px;
+      border-radius:6px;
       border:none;
-      font-size:14px;
     }
 
-    /* ===== 2 คอลัมน์ ===== */
+    button{
+      padding:8px 12px;
+      border-radius:6px;
+      border:none;
+      background:#2563eb;
+      color:white;
+      cursor:pointer;
+    }
 
     .columns{
       display:grid;
@@ -1195,12 +1210,6 @@ app.get('/jobs', async (req, res) => {
       border-radius:10px;
     }
 
-    .section h2{
-      margin-bottom:10px;
-    }
-
-    /* ===== แถวงาน ===== */
-
     .job-row{
       background:#334155;
       margin-bottom:8px;
@@ -1213,68 +1222,20 @@ app.get('/jobs', async (req, res) => {
       gap:10px;
     }
 
-    .job-left{
-      flex:2;
-      min-width:180px;
-    }
+    .job-left{flex:2}
+    .job-mid{flex:1;font-size:13px;color:#cbd5e1}
+    .job-right{flex:1;text-align:right}
 
-    .job-mid{
-      flex:1;
-      min-width:140px;
-      font-size:13px;
-      color:#cbd5e1;
-    }
-
-    .job-right{
-      flex:1;
-      min-width:120px;
-      text-align:right;
-    }
-
-    .sub{
-      font-size:13px;
-      color:#94a3b8;
-    }
-
-    .note{
-      font-size:13px;
-      color:#facc15;
-      margin-top:4px;
-    }
-
-    select{
-      padding:6px;
-      border-radius:6px;
-      border:none;
-    }
+    .sub{font-size:13px;color:#94a3b8}
+    .note{font-size:13px;color:#facc15;margin-top:4px}
 
     @media(max-width:768px){
-      .columns{
-        grid-template-columns:1fr;
-      }
-      .job-row{
-        flex-direction:column;
-        align-items:flex-start;
-      }
-      .job-right{
-        text-align:left;
-      }
+      .columns{grid-template-columns:1fr}
+      .job-row{flex-direction:column;align-items:flex-start}
+      .job-right{text-align:left}
     }
 
   </style>
-
-  <script>
-    function searchJobs(){
-      let input = document.getElementById("search").value.toLowerCase();
-      let rows = document.getElementsByClassName("job-row");
-
-      for(let i=0;i<rows.length;i++){
-        let text = rows[i].innerText.toLowerCase();
-        rows[i].style.display = text.includes(input) ? "flex" : "none";
-      }
-    }
-  </script>
-
   </head>
 
   <body>
@@ -1288,8 +1249,12 @@ app.get('/jobs', async (req, res) => {
       <a class="menu-btn" href="/monitor">📺 มอนิเตอร์</a>
     </div>
 
-    <div class="search-box">
-      <input type="text" id="search" onkeyup="searchJobs()" placeholder="ค้นหาชื่อลูกค้า / ประเภท / หมายเหตุ">
+    <div class="filter-bar">
+      <form method="GET" action="/jobs">
+        <input type="date" name="date" value="${selectedDate}">
+        <button type="submit">กรองวันที่</button>
+        <a href="/jobs" style="color:#94a3b8;margin-left:10px;">ล้างตัวกรอง</a>
+      </form>
     </div>
 
     <div class="columns">
