@@ -689,58 +689,65 @@ app.get('/monitor', async (req, res) => {
   }
 
   const now = new Date();
-
-  // ===== จัดกลุ่ม =====
-  let todayJobs = [];
-  let tomorrowJobs = [];
-  let pendingToday = [];
-  let workingToday = [];
-  let installationUpcoming = [];
-
   const today = new Date();
   const tomorrow = new Date();
   tomorrow.setDate(today.getDate() + 1);
 
-  jobs.forEach(job => {
+  let todayJobs = [];
+  let tomorrowJobs = [];
+  let installJobs = [];
+  let completedRecent = [];
 
-    if (job.status === "เสร็จแล้ว") return;
+  let pending = 0;
+  let working = 0;
+  let completed = 0;
+  let notFinishedTotal = 0;
+
+  jobs.forEach(job => {
 
     const due = new Date(job.duetime);
 
-    // ===== วันนี้ =====
-    if (
+    const isToday =
       due.getFullYear() === today.getFullYear() &&
       due.getMonth() === today.getMonth() &&
-      due.getDate() === today.getDate()
-    ) {
-      todayJobs.push(job);
+      due.getDate() === today.getDate();
 
-      if (job.status === "รอดำเนินการ") pendingToday.push(job);
-      if (job.status === "กำลังทำ") workingToday.push(job);
-    }
-
-    // ===== พรุ่งนี้ =====
-    if (
+    const isTomorrow =
       due.getFullYear() === tomorrow.getFullYear() &&
       due.getMonth() === tomorrow.getMonth() &&
-      due.getDate() === tomorrow.getDate()
-    ) {
+      due.getDate() === tomorrow.getDate();
+
+    if (job.status !== "เสร็จแล้ว") {
+      notFinishedTotal++;
+      if (job.status === "รอดำเนินการ") pending++;
+      if (job.status === "กำลังทำ") working++;
+    }
+
+    if (job.status === "เสร็จแล้ว") {
+      completed++;
+      if (isToday || isTomorrow) completedRecent.push(job);
+    }
+
+    if (isToday && job.status !== "เสร็จแล้ว") {
+      todayJobs.push(job);
+    }
+
+    if (isTomorrow && job.status !== "เสร็จแล้ว") {
       tomorrowJobs.push(job);
     }
 
-    // ===== งานติดตั้งใกล้ถึงกำหนด =====
-    if (job.jobtype === "ติดตั้ง") {
+    // งานติดตั้ง
+    if (job.jobtype === "ติดตั้ง" && job.status !== "เสร็จแล้ว") {
 
       const diffDays = Math.floor((due - now) / (1000 * 60 * 60 * 24));
 
       if (diffDays <= 2) {
-        installationUpcoming.push({ job, diffDays });
+        installJobs.push({ job, diffDays });
       }
     }
 
   });
 
-  // ===== helper =====
   function formatDate(d) {
     return new Date(d).toLocaleDateString("th-TH", {
       timeZone: "Asia/Bangkok",
@@ -758,112 +765,114 @@ app.get('/monitor', async (req, res) => {
     });
   }
 
-  // ===== render row =====
   function renderRow(job) {
     return `
       <div class="row-card">
         <strong>${job.customer}</strong>
         <span>${job.jobtype}</span>
         <span>${formatTime(job.duetime)}</span>
-        <span class="status">${job.status}</span>
       </div>
     `;
   }
 
-  // ===== render installation =====
   function renderInstall(item) {
 
-    let colorClass = "";
-    let text = "";
+    let cls = "";
+    let label = "";
 
     if (item.diffDays === 2) {
-      colorClass = "orange";
-      text = "เหลือ 2 วัน";
+      cls = "orange";
+      label = "เหลือ 2 วัน";
     } else if (item.diffDays === 1) {
-      colorClass = "red";
-      text = "เหลือ 1 วัน";
+      cls = "red";
+      label = "เหลือ 1 วัน";
     } else if (item.diffDays <= 0) {
-      colorClass = "blink";
-      text = "เลยกำหนด";
+      cls = "blink";
+      label = "เลยกำหนด";
     }
 
     return `
-      <div class="install-card ${colorClass}">
+      <div class="install-card ${cls}">
         <strong>${item.job.customer}</strong>
-        <span>📅 ${formatDate(item.job.duetime)}</span>
-        <span>${text}</span>
+        <span>${formatDate(item.job.duetime)}</span>
+        <span>${label}</span>
       </div>
     `;
   }
 
-  // ===== HTML =====
   res.send(`
   <html>
   <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="30">
-    <title>MONITOR</title>
-    <style>
-      body {
-        background:#0f172a;
-        color:white;
-        font-family:Arial;
-        padding:30px;
-      }
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="30">
+  <style>
+    body {
+      background:#0f172a;
+      color:white;
+      font-family:Arial;
+      padding:30px;
+    }
 
-      h2 {
-        margin-top:40px;
-      }
+    h2 { margin-bottom:10px; }
 
-      .row-card {
-        background:#1e293b;
-        padding:10px 14px;
-        border-radius:8px;
-        margin-bottom:8px;
-        display:flex;
-        gap:20px;
-        align-items:center;
-      }
+    .summary {
+      display:flex;
+      gap:20px;
+      margin-bottom:30px;
+    }
 
-      .status {
-        opacity:0.7;
-      }
+    .summary div {
+      background:#1e293b;
+      padding:14px 20px;
+      border-radius:10px;
+      font-weight:bold;
+    }
 
-      .install-card {
-        background:#1e293b;
-        padding:10px 14px;
-        border-radius:8px;
-        margin-bottom:8px;
-        display:flex;
-        gap:20px;
-        align-items:center;
-      }
+    .columns {
+      display:flex;
+      gap:30px;
+    }
 
-      .orange {
-        border-left:5px solid orange;
-      }
+    .column {
+      flex:1;
+    }
 
-      .red {
-        border-left:5px solid red;
-      }
+    .row-card, .install-card {
+      background:#1e293b;
+      padding:10px;
+      border-radius:8px;
+      margin-bottom:8px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
 
-      .blink {
-        border-left:5px solid red;
-        animation: blink 1s infinite;
-      }
+    .orange { border-left:5px solid orange; }
+    .red { border-left:5px solid red; }
+    .blink {
+      border-left:5px solid red;
+      animation: blink 1s infinite;
+    }
 
-      @keyframes blink {
-        50% { background:#7f1d1d; }
-      }
+    @keyframes blink {
+      50% { background:#7f1d1d; }
+    }
 
-      .clock {
-        position:fixed;
-        top:20px;
-        right:30px;
-        font-size:26px;
-        font-weight:bold;
-      }
-    </style>
+    .completed {
+      margin-top:40px;
+      background:#065f46;
+      padding:15px;
+      border-radius:10px;
+    }
+
+    .clock {
+      position:fixed;
+      top:20px;
+      right:30px;
+      font-size:26px;
+      font-weight:bold;
+    }
+  </style>
   </head>
 
   <body>
@@ -872,21 +881,38 @@ app.get('/monitor', async (req, res) => {
 
   <h1>📺 MONITOR ระบบงานร้านดำรงค์อิงค์เจ็ท</h1>
 
-  <h2>🔥 วันนี้</h2>
-  ${todayJobs.length === 0 ? "ไม่มีงานวันนี้" : todayJobs.map(renderRow).join("")}
+  <div class="summary">
+    <div>วันนี้ ${todayJobs.length}</div>
+    <div>พรุ่งนี้ ${tomorrowJobs.length}</div>
+    <div>รอดำเนินการ ${pending}</div>
+    <div>กำลังทำ ${working}</div>
+    <div>เสร็จแล้ว ${completed}</div>
+    <div>ยังไม่เสร็จทั้งหมด ${notFinishedTotal}</div>
+  </div>
 
-  <h2>📅 พรุ่งนี้</h2>
-  ${tomorrowJobs.length === 0 ? "ไม่มีงานพรุ่งนี้" : tomorrowJobs.map(renderRow).join("")}
+  <div class="columns">
 
-  <h2>📊 สถานะวันนี้</h2>
-  <h3>รอดำเนินการ</h3>
-  ${pendingToday.length === 0 ? "ไม่มี" : pendingToday.map(renderRow).join("")}
+    <div class="column">
+      <h2>🔥 วันนี้ (${formatDate(today)})</h2>
+      ${todayJobs.length === 0 ? "ไม่มีงานวันนี้" : todayJobs.map(renderRow).join("")}
+    </div>
 
-  <h3>กำลังทำ</h3>
-  ${workingToday.length === 0 ? "ไม่มี" : workingToday.map(renderRow).join("")}
+    <div class="column">
+      <h2>📅 พรุ่งนี้ (${formatDate(tomorrow)})</h2>
+      ${tomorrowJobs.length === 0 ? "ไม่มีงานพรุ่งนี้" : tomorrowJobs.map(renderRow).join("")}
+    </div>
 
-  <h2>📦 งานติดตั้งใกล้ถึงกำหนด</h2>
-  ${installationUpcoming.length === 0 ? "ไม่มีงานติดตั้งใกล้ถึงกำหนด" : installationUpcoming.map(renderInstall).join("")}
+    <div class="column">
+      <h2>📦 งานติดตั้งใกล้ถึงกำหนด</h2>
+      ${installJobs.length === 0 ? "ไม่มีงานติดตั้งใกล้ถึงกำหนด" : installJobs.map(renderInstall).join("")}
+    </div>
+
+  </div>
+
+  <div class="completed">
+    <h2>✅ งานเสร็จวันนี้ / พรุ่งนี้</h2>
+    ${completedRecent.length === 0 ? "ไม่มี" : completedRecent.map(renderRow).join("")}
+  </div>
 
   <script>
     function updateClock() {
