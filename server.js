@@ -775,9 +775,9 @@ app.get('/monitor', async (req, res) => {
   res.send(`
   <html>
   <head>
+  <meta http-equiv="refresh" content="30">
   <meta charset="UTF-8">
   <title>MONITOR</title>
-
   <style>
     body {
       margin:0;
