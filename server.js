@@ -1070,6 +1070,16 @@ app.get('/jobs', async (req, res) => {
 
   if (error) return res.send("โหลดข้อมูลไม่สำเร็จ");
 
+  const now = new Date();
+
+  function isSameDate(d1, d2) {
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+    );
+  }
+
   function formatDateTime(dt) {
     return new Date(dt).toLocaleString("th-TH", {
       timeZone: "Asia/Bangkok",
@@ -1080,6 +1090,10 @@ app.get('/jobs', async (req, res) => {
       minute: "2-digit"
     });
   }
+
+  const todayJobs = jobs.filter(j => 
+    isSameDate(new Date(j.duetime), now)
+  );
 
   function renderRow(job) {
     return `
@@ -1113,7 +1127,7 @@ app.get('/jobs', async (req, res) => {
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>รายการงาน</title>
+  <title>งานทั้งหมด</title>
 
   <style>
     body{
@@ -1124,22 +1138,36 @@ app.get('/jobs', async (req, res) => {
       padding:20px;
     }
 
-    .topbar{
-      display:flex;
-      justify-content:space-between;
-      flex-wrap:wrap;
+    h1{
+      margin-bottom:15px;
+    }
+
+    /* ===== เมนูด้านบน ===== */
+
+    .top-menu{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap:10px;
       margin-bottom:20px;
     }
 
-    .topbar a{
-      background:#2563eb;
-      padding:8px 14px;
-      border-radius:6px;
+    .menu-btn{
+      background:#1e293b;
+      padding:14px;
+      border-radius:10px;
+      text-align:center;
+      font-weight:bold;
       text-decoration:none;
       color:white;
-      font-size:14px;
+      transition:0.2s;
     }
+
+    .menu-btn:hover{
+      background:#2563eb;
+      transform:translateY(-2px);
+    }
+
+    /* ===== ค้นหา ===== */
 
     .search-box{
       margin-bottom:20px;
@@ -1147,16 +1175,36 @@ app.get('/jobs', async (req, res) => {
 
     input[type="text"]{
       width:100%;
-      padding:10px;
-      border-radius:6px;
+      padding:12px;
+      border-radius:8px;
       border:none;
       font-size:14px;
     }
 
-    .job-row{
+    /* ===== 2 คอลัมน์ ===== */
+
+    .columns{
+      display:grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap:20px;
+    }
+
+    .section{
       background:#1e293b;
+      padding:15px;
+      border-radius:10px;
+    }
+
+    .section h2{
       margin-bottom:10px;
-      padding:12px;
+    }
+
+    /* ===== แถวงาน ===== */
+
+    .job-row{
+      background:#334155;
+      margin-bottom:8px;
+      padding:10px;
       border-radius:8px;
       display:flex;
       justify-content:space-between;
@@ -1167,19 +1215,19 @@ app.get('/jobs', async (req, res) => {
 
     .job-left{
       flex:2;
-      min-width:200px;
+      min-width:180px;
     }
 
     .job-mid{
       flex:1;
-      min-width:150px;
-      font-size:14px;
+      min-width:140px;
+      font-size:13px;
       color:#cbd5e1;
     }
 
     .job-right{
       flex:1;
-      min-width:140px;
+      min-width:120px;
       text-align:right;
     }
 
@@ -1201,15 +1249,18 @@ app.get('/jobs', async (req, res) => {
     }
 
     @media(max-width:768px){
+      .columns{
+        grid-template-columns:1fr;
+      }
       .job-row{
         flex-direction:column;
         align-items:flex-start;
       }
-
       .job-right{
         text-align:left;
       }
     }
+
   </style>
 
   <script>
@@ -1228,20 +1279,32 @@ app.get('/jobs', async (req, res) => {
 
   <body>
 
-    <h1>📋 งานทั้งหมด (ยังไม่เสร็จ)</h1>
+    <h1>📋 งานทั้งหมด</h1>
 
-    <div class="topbar">
-      <a href="/add-job">➕ เพิ่มงาน</a>
-      <a href="/completed">✅ งานเสร็จแล้ว</a>
-      <a href="/deleted">🗑 งานที่ถูกลบ</a>
-      <a href="/monitor">📺 มอนิเตอร์</a>
+    <div class="top-menu">
+      <a class="menu-btn" href="/add-job">➕ เพิ่มงาน</a>
+      <a class="menu-btn" href="/completed">✅ งานเสร็จแล้ว</a>
+      <a class="menu-btn" href="/deleted">🗑 งานที่ถูกลบ</a>
+      <a class="menu-btn" href="/monitor">📺 มอนิเตอร์</a>
     </div>
 
     <div class="search-box">
       <input type="text" id="search" onkeyup="searchJobs()" placeholder="ค้นหาชื่อลูกค้า / ประเภท / หมายเหตุ">
     </div>
 
-    ${jobs.map(renderRow).join("") || "<p>ไม่มีงานค้าง</p>"}
+    <div class="columns">
+
+      <div class="section">
+        <h2>🔥 งานวันนี้</h2>
+        ${todayJobs.map(renderRow).join("") || "ไม่มีงานวันนี้"}
+      </div>
+
+      <div class="section">
+        <h2>📋 งานทั้งหมดที่ยังไม่เสร็จ</h2>
+        ${jobs.map(renderRow).join("") || "ไม่มีงานค้าง"}
+      </div>
+
+    </div>
 
   </body>
   </html>
