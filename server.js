@@ -959,7 +959,7 @@ app.get('/monitor', async (req, res) => {
 
 
 // ดูงานทั้งหมด
-app.get('/jobs', async (req, res) => {
+/*app.get('/jobs', async (req, res) => {
 
     const { data: jobs, error } = await supabase
     
@@ -1058,7 +1058,198 @@ app.get('/jobs', async (req, res) => {
     </body>
     </html>
     `);
-});  
+}); */ 
+app.get('/jobs', async (req, res) => {
+
+  const { data: jobs, error } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('is_deleted', false)
+    .neq('status', 'เสร็จแล้ว')
+    .order('duetime', { ascending: true });
+
+  if (error) return res.send("โหลดข้อมูลไม่สำเร็จ");
+
+  function formatDateTime(dt) {
+    return new Date(dt).toLocaleString("th-TH", {
+      timeZone: "Asia/Bangkok",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  function renderRow(job) {
+    return `
+      <div class="job-row">
+        <div class="job-left">
+          <strong>${job.customer}</strong>
+          <div class="sub">${job.jobtype}</div>
+          ${job.note ? `<div class="note">📝 ${job.note}</div>` : ""}
+        </div>
+
+        <div class="job-mid">
+          🗓 ${formatDateTime(job.duetime)}
+        </div>
+
+        <div class="job-right">
+          <form method="POST" action="/update-status">
+            <input type="hidden" name="id" value="${job.id}">
+            <select name="status" onchange="this.form.submit()">
+              <option value="รอดำเนินการ" ${job.status === "รอดำเนินการ" ? "selected" : ""}>รอดำเนินการ</option>
+              <option value="กำลังทำ" ${job.status === "กำลังทำ" ? "selected" : ""}>กำลังทำ</option>
+              <option value="เสร็จแล้ว">เสร็จแล้ว</option>
+            </select>
+          </form>
+        </div>
+      </div>
+    `;
+  }
+
+  res.send(`
+  <html>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>รายการงาน</title>
+
+  <style>
+    body{
+      margin:0;
+      background:#0f172a;
+      color:white;
+      font-family:Arial;
+      padding:20px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:20px;
+    }
+
+    .topbar a{
+      background:#2563eb;
+      padding:8px 14px;
+      border-radius:6px;
+      text-decoration:none;
+      color:white;
+      font-size:14px;
+    }
+
+    .search-box{
+      margin-bottom:20px;
+    }
+
+    input[type="text"]{
+      width:100%;
+      padding:10px;
+      border-radius:6px;
+      border:none;
+      font-size:14px;
+    }
+
+    .job-row{
+      background:#1e293b;
+      margin-bottom:10px;
+      padding:12px;
+      border-radius:8px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    .job-left{
+      flex:2;
+      min-width:200px;
+    }
+
+    .job-mid{
+      flex:1;
+      min-width:150px;
+      font-size:14px;
+      color:#cbd5e1;
+    }
+
+    .job-right{
+      flex:1;
+      min-width:140px;
+      text-align:right;
+    }
+
+    .sub{
+      font-size:13px;
+      color:#94a3b8;
+    }
+
+    .note{
+      font-size:13px;
+      color:#facc15;
+      margin-top:4px;
+    }
+
+    select{
+      padding:6px;
+      border-radius:6px;
+      border:none;
+    }
+
+    @media(max-width:768px){
+      .job-row{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .job-right{
+        text-align:left;
+      }
+    }
+  </style>
+
+  <script>
+    function searchJobs(){
+      let input = document.getElementById("search").value.toLowerCase();
+      let rows = document.getElementsByClassName("job-row");
+
+      for(let i=0;i<rows.length;i++){
+        let text = rows[i].innerText.toLowerCase();
+        rows[i].style.display = text.includes(input) ? "flex" : "none";
+      }
+    }
+  </script>
+
+  </head>
+
+  <body>
+
+    <h1>📋 งานทั้งหมด (ยังไม่เสร็จ)</h1>
+
+    <div class="topbar">
+      <a href="/add-job">➕ เพิ่มงาน</a>
+      <a href="/completed">✅ งานเสร็จแล้ว</a>
+      <a href="/deleted">🗑 งานที่ถูกลบ</a>
+      <a href="/monitor">📺 มอนิเตอร์</a>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="search" onkeyup="searchJobs()" placeholder="ค้นหาชื่อลูกค้า / ประเภท / หมายเหตุ">
+    </div>
+
+    ${jobs.map(renderRow).join("") || "<p>ไม่มีงานค้าง</p>"}
+
+  </body>
+  </html>
+  `);
+});
+
+
+
 
 //แสดงหน้าแก้ไข
 app.get('/edit/:id', async (req, res) => {
