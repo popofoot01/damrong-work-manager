@@ -264,14 +264,6 @@ app.get('/monitor', async (req, res) => {
         const diffMinutes = (due - now) / 60000;
         const diffDays = Math.floor((due - now) / (1000 * 60 * 60 * 24));
 
-if (
-  job.jobtype === "ติดตั้ง" &&
-  job.status !== "เสร็จแล้ว" &&
-  diffDays <= 2 && diffDays >= 0
-) {
-  installationUpcoming.push(job);
-}
-
 
         // วันนี้
         if (
@@ -293,6 +285,14 @@ if (
     tomorrowJobs.push({ job, diffMinutes });
 }
 
+if (
+  job.jobtype === "ติดตั้ง" &&
+  job.status !== "เสร็จแล้ว" &&
+  diffDays <= 2 && diffDays >= 0
+) {
+  installationUpcoming.push(job);
+}
+    
 const installSection = `
 <h2 style="margin-top:40px;">📦 งานติดตั้งใกล้ถึงกำหนด</h2>
 ${
@@ -316,10 +316,6 @@ ${
     }).join("")
 }
 `;
-
-
-
-
 
         // แยกสถานะ
         if (job.status === "รอดำเนินการ") pending.push(job);
@@ -598,6 +594,8 @@ if (dueBKK.toDateString() === tomorrowBKK.toDateString()) {
         </div>
 
 
+
+        
        <h2>📊 แยกตามสถานะ</h2>
 
 <div class="row">
