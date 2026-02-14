@@ -686,11 +686,12 @@ app.get('/monitor', async (req, res) => {
   if (error) return res.send("โหลดข้อมูลไม่สำเร็จ");
 
   const now = new Date();
+
   const today = new Date();
   const tomorrow = new Date();
   tomorrow.setDate(today.getDate() + 1);
 
-  const isSameDate = (d1, d2) =>
+  const isSameDay = (d1, d2) =>
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate();
@@ -700,223 +701,149 @@ app.get('/monitor', async (req, res) => {
   let installJobs = [];
   let completedTodayTomorrow = [];
 
-  let pending = 0;
-  let working = 0;
-  let completed = 0;
-  let notFinishedTotal = 0;
+  let totalPending = 0;
+  let totalWorking = 0;
+  let totalCompleted = 0;
 
   jobs.forEach(job => {
     const due = new Date(job.duetime);
     const diffMinutes = (due - now) / 60000;
+    const diffDays = Math.floor((due - now) / (1000*60*60*24));
 
-    if (job.status !== "เสร็จแล้ว") notFinishedTotal++;
-
-    if (job.status === "รอดำเนินการ") pending++;
-    if (job.status === "กำลังทำ") working++;
-    if (job.status === "เสร็จแล้ว") completed++;
+    const isToday = isSameDay(due, today);
+    const isTomorrow = isSameDay(due, tomorrow);
 
     if (job.status !== "เสร็จแล้ว") {
-      if (isSameDate(due, today)) todayJobs.push(job);
-      if (isSameDate(due, tomorrow)) tomorrowJobs.push(job);
+      if (isToday) todayJobs.push({job,diffMinutes});
+      if (isTomorrow) tomorrowJobs.push({job,diffMinutes});
     }
 
     if (job.jobtype && job.jobtype.includes("ติดตั้ง") && job.status !== "เสร็จแล้ว") {
-      installJobs.push(job);
+      installJobs.push({job,diffDays});
     }
 
-    if (
-      job.status === "เสร็จแล้ว" &&
-      (isSameDate(due, today) || isSameDate(due, tomorrow))
-    ) {
+    if ((isToday || isTomorrow) && job.status === "เสร็จแล้ว") {
       completedTodayTomorrow.push(job);
     }
+
+    if (job.status === "รอดำเนินการ") totalPending++;
+    if (job.status === "กำลังทำ") totalWorking++;
+    if (job.status === "เสร็จแล้ว") totalCompleted++;
   });
 
-  function formatDateTime(dt) {
-    return new Date(dt).toLocaleString("th-TH", {
-      timeZone: "Asia/Bangkok",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit"
-    });
-  }
+  const totalActive = totalPending + totalWorking;
 
-  function renderRow(job) {
+  const renderRow = (job, diffMinutes=9999, diffDays=999) => {
 
-    const due = new Date(job.duetime);
-    const diffMinutes = (due - now) / 60000;
-
-    let extraClass = "";
+    let blinkClass = "";
+    let bg = "#1f2937";
     let icon = "🟡";
 
     if (job.status === "กำลังทำ") {
-      extraClass = "blue-blink";
+      bg = "#0ea5e9";
+      blinkClass = "blink-blue";
       icon = "🔵";
     }
 
-    if (diffMinutes <= 60 && diffMinutes > 0 && job.status !== "เสร็จแล้ว") {
-      extraClass = "orange-blink";
+    if (diffMinutes <= 60 && diffMinutes > 0) {
+      blinkClass = "blink-orange";
+      bg = "#f97316";
     }
 
-    if (diffMinutes <= 0 && job.status !== "เสร็จแล้ว") {
-      extraClass = "red-blink";
+    if (diffMinutes < 0) {
+      blinkClass = "blink-red";
+      bg = "#dc2626";
+    }
+
+    if (job.jobtype && job.jobtype.includes("ติดตั้ง")) {
+      if (diffDays === 2) bg = "#f59e0b";
+      if (diffDays === 1) bg = "#b91c1c";
+      if (diffDays < 0) blinkClass = "blink-red";
     }
 
     return `
-      <div class="row-card ${extraClass}">
-        <strong>${icon} ${job.customer}</strong>
-        <span>${job.jobtype}</span>
-        <span>🗓 ${formatDateTime(job.duetime)}</span>
+      <div class="row ${blinkClass}" style="background:${bg}">
+        ${icon} ${job.customer} | ${job.jobtype}
+        <span>${new Date(job.duetime).toLocaleDateString("th-TH",{timeZone:"Asia/Bangkok"})}
+        ${new Date(job.duetime).toLocaleTimeString("th-TH",{hour:'2-digit',minute:'2-digit',timeZone:"Asia/Bangkok"})}</span>
       </div>
     `;
-  }
+  };
 
   res.send(`
   <html>
   <head>
-  <meta charset="UTF-8">
-  <title>MONITOR</title>
-
+  <title>Monitor</title>
+  <meta http-equiv="refresh" content="30">
   <style>
-    body {
-      margin:0;
-      background:#0f172a;
-      color:white;
-      font-family:Arial;
-      padding:20px;
-    }
-
-    h2 { margin-bottom:10px }
-
-    .topbar {
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
-
-    .clock {
-      font-size:28px;
-      font-weight:bold;
-    }
-
-    .summary {
-      display:grid;
-      grid-template-columns:repeat(6,1fr);
-      gap:10px;
-      margin:20px 0;
-    }
-
-    .summary div {
-      background:#1e293b;
-      padding:15px;
-      border-radius:10px;
-      text-align:center;
-      font-weight:bold;
-    }
-
-    .columns {
-      display:grid;
-      grid-template-columns:1fr 1fr 1fr;
-      gap:20px;
-    }
-
-    .section {
-      background:#1e293b;
-      padding:15px;
-      border-radius:10px;
-    }
-
-    .row-card {
-      background:#334155;
-      margin:8px 0;
-      padding:10px;
-      border-radius:8px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
-
-    .blue-blink {
-      animation: blueblink 1s infinite;
-    }
-    @keyframes blueblink {
-      50% { background:#2563eb; }
-    }
-
-    .orange-blink {
-      animation: orangeblink 1s infinite;
-    }
-    @keyframes orangeblink {
-      50% { background:#f97316; }
-    }
-
-    .red-blink {
-      animation: redblink 1s infinite;
-    }
-    @keyframes redblink {
-      50% { background:#dc2626; }
-    }
-
-    .completed-section {
-      margin-top:30px;
-      background:#14532d;
-      padding:15px;
-      border-radius:10px;
-    }
-
+    body{background:#0f172a;color:white;font-family:Arial;padding:20px}
+    h2{margin-bottom:5px}
+    .top{display:flex;gap:15px;margin-bottom:20px}
+    .card{background:#1e293b;padding:15px;border-radius:10px;flex:1;text-align:center}
+    .columns{display:flex;gap:20px;margin-top:20px}
+    .col{flex:1}
+    .row{padding:10px;border-radius:8px;margin:5px 0;display:flex;justify-content:space-between}
+    .green{background:#16a34a}
+    .blink-blue{animation:blinkBlue 1s infinite}
+    .blink-orange{animation:blinkOrange 1s infinite}
+    .blink-red{animation:blinkRed 1s infinite}
+    @keyframes blinkBlue{0%,100%{opacity:1}50%{opacity:0.4}}
+    @keyframes blinkOrange{0%,100%{opacity:1}50%{opacity:0.4}}
+    @keyframes blinkRed{0%,100%{opacity:1}50%{opacity:0.3}}
+    #clock{font-size:22px;font-weight:bold;float:right}
   </style>
+  </head>
+  <body>
+
+  <div id="clock"></div>
+
+  <h1>📺 MONITOR ระบบงานร้านดำรงค์อิงค์เจ็ท</h1>
+
+  <div class="top">
+    <div class="card">📅 วันนี้ ${todayJobs.length} งาน</div>
+    <div class="card">📅 พรุ่งนี้ ${tomorrowJobs.length} งาน</div>
+    <div class="card">🟡 รอดำเนินการ ${totalPending}</div>
+    <div class="card">🔵 กำลังทำ ${totalWorking}</div>
+    <div class="card">🟢 เสร็จแล้ว ${totalCompleted}</div>
+    <div class="card">📊 งานทั้งหมดที่ยังไม่เสร็จ ${totalActive}</div>
+  </div>
+
+  <div class="columns">
+
+    <div class="col">
+      <h2>🔥 วันนี้ (${today.toLocaleDateString("th-TH",{timeZone:"Asia/Bangkok"})})</h2>
+      ${todayJobs.map(j=>renderRow(j.job,j.diffMinutes)).join("")}
+    </div>
+
+    <div class="col">
+      <h2>📅 พรุ่งนี้ (${tomorrow.toLocaleDateString("th-TH",{timeZone:"Asia/Bangkok"})})</h2>
+      ${tomorrowJobs.map(j=>renderRow(j.job,j.diffMinutes)).join("")}
+    </div>
+
+    <div class="col">
+      <h2>🛠 งานติดตั้ง</h2>
+      ${installJobs.map(j=>renderRow(j.job,9999,j.diffDays)).join("")}
+    </div>
+
+  </div>
+
+  <h2>🟢 งานเสร็จวันนี้/พรุ่งนี้</h2>
+  ${completedTodayTomorrow.map(j=>`
+    <div class="row green">
+      🟢 ${j.customer} | ${j.jobtype}
+      <span>${new Date(j.duetime).toLocaleDateString("th-TH",{timeZone:"Asia/Bangkok"})}</span>
+    </div>
+  `).join("")}
 
   <script>
     function updateClock(){
-      const now = new Date();
-      document.getElementById("clock").innerText =
-        now.toLocaleTimeString("th-TH", { hour12:false });
+      const now=new Date();
+      document.getElementById("clock").innerText=
+        now.toLocaleTimeString("th-TH",{hour12:false});
     }
     setInterval(updateClock,1000);
+    updateClock();
   </script>
-
-  </head>
-  <body onload="updateClock()">
-
-    <div class="topbar">
-      <h1>📺 MONITOR ระบบงานร้านดำรงค์อิงค์เจ็ท</h1>
-      <div class="clock" id="clock"></div>
-    </div>
-
-    <div class="summary">
-      <div>📅 วันนี้ ${todayJobs.length}</div>
-      <div>📅 พรุ่งนี้ ${tomorrowJobs.length}</div>
-      <div>🟡 รอดำเนินการ ${pending}</div>
-      <div>🔵 กำลังทำ ${working}</div>
-      <div>🟢 เสร็จแล้ว ${completed}</div>
-      <div>📦 ยังไม่เสร็จ ${notFinishedTotal}</div>
-    </div>
-
-    <div class="columns">
-
-      <div class="section">
-        <h2>🔥 วันนี้ (${today.toLocaleDateString("th-TH")})</h2>
-        ${todayJobs.map(renderRow).join("") || "ไม่มีงานวันนี้"}
-      </div>
-
-      <div class="section">
-        <h2>📅 พรุ่งนี้ (${tomorrow.toLocaleDateString("th-TH")})</h2>
-        ${tomorrowJobs.map(renderRow).join("") || "ไม่มีงานพรุ่งนี้"}
-      </div>
-
-      <div class="section">
-        <h2>🛠 งานติดตั้ง</h2>
-        ${installJobs.map(renderRow).join("") || "ไม่มีงานติดตั้ง"}
-      </div>
-
-    </div>
-
-    <div class="completed-section">
-      <h2>✅ งานเสร็จวันนี้/พรุ่งนี้</h2>
-      ${completedTodayTomorrow.map(renderRow).join("") || "ยังไม่มีงานเสร็จ"}
-    </div>
 
   </body>
   </html>
