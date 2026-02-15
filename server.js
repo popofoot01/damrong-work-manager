@@ -1574,7 +1574,7 @@ button{
 
 
 <script>
-addItem(); // เริ่มต้นมี 1 รายการ
+
 
 let items = [];
 
@@ -1655,6 +1655,7 @@ function addItem() {
   renderItems();
 }
 
+addItem(); // เริ่มต้นมี 1 รายการ
 renderItems();
 
 
