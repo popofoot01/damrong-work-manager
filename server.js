@@ -1263,7 +1263,7 @@ app.get('/jobs', async (req, res) => {
     <h1>📋 งานทั้งหมด</h1>
 
     <div class="top-menu">
-      <a class="menu-btn" href="/add-job">➕ เพิ่มงาน</a>
+      <a class="menu-btn" href="/">➕ เพิ่มงาน</a>
       <a class="menu-btn" href="/completed">✅ งานเสร็จแล้ว</a>
       <a class="menu-btn" href="/deleted">🗑 งานที่ถูกลบ</a>
       <a class="menu-btn" href="/monitor">📺 มอนิเตอร์</a>
