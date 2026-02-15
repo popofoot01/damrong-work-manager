@@ -1548,7 +1548,7 @@ button{
 
 <div id="itemsContainer"></div>
 
-<button type="button" class="quick-btn" onclick="addItem()">➕ เพิ่มรายการ</button>
+<button type="button" onclick="addItem()">➕ เพิ่มรายการ</button>
 
 <h3>รวมทั้งหมด: <span id="grandTotal">0</span> บาท</h3>
 
@@ -1574,33 +1574,6 @@ button{
 
 
 <script>
-
-let items = [];
-
-function updateItem(index, field, value) {
-  items[index][field] = parseFloat(value) || 0;
-
-  const item = items[index];
-  item.total = item.width * item.height * item.qty * item.rate;
-
-  renderItems();
-}
-
-function removeItem(index) {
-  items.splice(index, 1);
-  renderItems();
-}
-
-function addItem() {
-  items.push({
-    width: 1,
-    height: 1,
-    qty: 1,
-    rate: 0,
-    total: 0
-  });
-  renderItems();
-}
 
 function renderItems() {
   const container = document.getElementById("itemsContainer");
@@ -1653,9 +1626,37 @@ function renderItems() {
 }
 
 addItem(); // เริ่มต้นมี 1 รายการ
-</script>
 
-<script>
+let items = [];
+
+function updateItem(index, field, value) {
+  items[index][field] = parseFloat(value) || 0;
+
+  const item = items[index];
+  item.total = item.width * item.height * item.qty * item.rate;
+
+  renderItems();
+}
+
+function removeItem(index) {
+  items.splice(index, 1);
+  renderItems();
+}
+
+function addItem() {
+  items.push({
+    width: 1,
+    height: 1,
+    qty: 1,
+    rate: 0,
+    total: 0
+  });
+  renderItems();
+}
+
+renderItems();
+
+
 function formatLocal(date) {
   if (!date || isNaN(date.getTime())) return "";
 
