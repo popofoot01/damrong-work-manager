@@ -15,7 +15,7 @@ const supabase = createClient(
 
 //เพิ่มงาน
 app.post('/add-job', async (req, res) => {
-    const { customer, jobType, dueTime, status, note, price  } = req.body;
+    const { customer, jobType, dueTime, status, note, price, items} = req.body;
 
 
     console.log(req.body);
@@ -44,6 +44,7 @@ app.post('/add-job', async (req, res) => {
                 status: "รอดำเนินการ",
                 note: note || null,
                 price: price || 0,
+                items: items ? JSON.parse(items) : null,
                 notified: false
                 
             }
@@ -1539,27 +1540,21 @@ button{
 
 <hr>
 
-<h3>💰 ประเมินราคา</h3>
-
-<label>กว้าง (เมตร)</label>
-<input type="number" step="0.01" id="width">
-
-<label>สูง (เมตร)</label>
-<input type="number" step="0.01" id="height">
-
-<label>ราคาต่อตร.ม.</label>
-<input type="number" id="pricePerSqm">
-
-<p>ราคาประเมิน: <span id="estimate">0</span> บาท</p>
-
-<label>ราคาสรุปสุดท้าย</label>
-<input type="number" name="price" id="finalPrice">
-
-
-
-
 <label>รายละเอียดเพิ่มเติม</label>
 <textarea name="note" rows="3" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
+
+<hr>
+<h3>💰 รายการสินค้า</h3>
+
+<div id="itemsContainer"></div>
+
+<button type="button" onclick="addItem()">➕ เพิ่มรายการ</button>
+
+<h3>รวมทั้งหมด: <span id="grandTotal">0</span> บาท</h3>
+
+<input type="hidden" name="items" id="itemsInput">
+<input type="hidden" name="price" id="finalPrice">
+
 
 <label>กำหนดวันเวลา</label>
 <input type="datetime-local" name="dueTime" required />
@@ -1575,22 +1570,98 @@ button{
 </form>
 </div>
 
+
+
+
 <script>
-function calculatePrice() {
-  const w = parseFloat(document.getElementById("width").value) || 0;
-  const h = parseFloat(document.getElementById("height").value) || 0;
-  const rate = parseFloat(document.getElementById("pricePerSqm").value) || 0;
 
-  const total = w * h * rate;
+let items = [];
 
-  document.getElementById("estimate").innerText = total.toFixed(2);
-  document.getElementById("finalPrice").value = total.toFixed(2);
+function addItem() {
+  items.push({
+    width: 0,
+    height: 0,
+    qty: 1,
+    rate: 0,
+    total: 0
+  });
+  renderItems();
 }
 
-document.getElementById("width").addEventListener("input", calculatePrice);
-document.getElementById("height").addEventListener("input", calculatePrice);
-document.getElementById("pricePerSqm").addEventListener("input", calculatePrice);
+function removeItem(index) {
+  items.splice(index, 1);
+  renderItems();
+}
+
+function updateItem(index, field, value) {
+  items[index][field] = parseFloat(value) || 0;
+
+  const w = items[index].width;
+  const h = items[index].height;
+  const qty = items[index].qty;
+  const rate = items[index].rate;
+
+  items[index].total = w * h * rate * qty;
+
+  renderItems();
+}
+
+function renderItems() {
+  const container = document.getElementById("itemsContainer");
+  container.innerHTML = "";
+
+  let grandTotal = 0;
+
+  items.forEach((item, index) => {
+    grandTotal += item.total;
+
+    container.innerHTML += 
+      <div style="background:#1e293b;padding:10px;margin:10px 0;border-radius:8px;">
+        
+        กว้าง:
+        <input type="number" step="0.01"
+          value="${item.width}"
+          onchange="updateItem(${index}, 'width', this.value)">
+
+        สูง:
+        <input type="number" step="0.01"
+          value="${item.height}"
+          onchange="updateItem(${index}, 'height', this.value)">
+
+        จำนวน:
+        <input type="number"
+          value="${item.qty}"
+          onchange="updateItem(${index}, 'qty', this.value)">
+
+        ราคา/ตรม:
+        <input type="number"
+          value="${item.rate}"
+          onchange="updateItem(${index}, 'rate', this.value)">
+
+        <br><br>
+
+        <strong>รวม: ${item.total.toFixed(2)} บาท</strong>
+
+        <button type="button"
+          onclick="removeItem(${index})"
+          style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;">
+          ลบ
+        </button>
+
+      </div>
+    ;
+  });
+
+  document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
+  document.getElementById("finalPrice").value = grandTotal.toFixed(2);
+  document.getElementById("itemsInput").value = JSON.stringify(items);
+}
+
+
+addItem(); // เริ่มต้นมี 1 รายการ
+
 </script>
+
 
 
 
