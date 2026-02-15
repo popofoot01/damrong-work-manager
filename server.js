@@ -1608,26 +1608,43 @@ function renderItems() {
 
   let grandTotal = 0;
 
-  items.forEach(function(item, index) {
+  items.forEach((item, index) => {
 
     item.total = item.width * item.height * item.qty * item.rate;
     grandTotal += item.total;
 
-    const div = document.createElement("div");
-    div.style.background = "#1e293b";
-    div.style.padding = "15px";
-    div.style.margin = "10px 0";
-    div.style.borderRadius = "8px";
+    container.innerHTML +=
+  '<div style="background:#1e293b;padding:15px;margin:10px 0;border-radius:8px;">' +
 
-    div.innerHTML =
-      'กว้าง: <input type="number" step="0.01" value="' + item.width + '" onchange="updateItem(' + index + ', \'width\', this.value)">' +
-      ' สูง: <input type="number" step="0.01" value="' + item.height + '" onchange="updateItem(' + index + ', \'height\', this.value)">' +
-      ' จำนวน: <input type="number" value="' + item.qty + '" onchange="updateItem(' + index + ', \'qty\', this.value)">' +
-      ' ราคา/ตรม: <input type="number" value="' + item.rate + '" onchange="updateItem(' + index + ', \'rate\', this.value)">' +
-      '<br><br><strong>รวม: ' + item.total.toFixed(2) + ' บาท</strong>' +
-      '<button type="button" onclick="removeItem(' + index + ')" style="background:red;color:white;margin-left:10px;">ลบ</button>';
+  'กว้าง:' +
+  '<input type="number" step="0.01" ' +
+  'value="' + item.width + '" ' +
+  'onchange="updateItem(' + index + ', \'width\', this.value)">' +
 
-    container.appendChild(div);
+  'สูง:' +
+  '<input type="number" step="0.01" ' +
+  'value="' + item.height + '" ' +
+  'onchange="updateItem(' + index + ', \'height\', this.value)">' +
+
+  'จำนวน:' +
+  '<input type="number" ' +
+  'value="' + item.qty + '" ' +
+  'onchange="updateItem(' + index + ', \'qty\', this.value)">' +
+
+  'ราคา/ตรม:' +
+  '<input type="number" ' +
+  'value="' + item.rate + '" ' +
+  'onchange="updateItem(' + index + ', \'rate\', this.value)">' +
+
+  '<br><br>' +
+
+  '<strong>รวม: ' + item.total.toFixed(2) + ' บาท</strong>' +
+
+  '<button type="button" ' +
+  'onclick="removeItem(' + index + ')" ' +
+  'style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;margin-left:10px;">ลบ</button>' +
+
+  '</div>';
   });
 
   document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
@@ -1635,19 +1652,10 @@ function renderItems() {
   document.getElementById("itemsInput").value = JSON.stringify(items);
 }
 
-
-
-
 addItem(); // เริ่มต้นมี 1 รายการ
 
-</script>
 
 
-
-
-
-
-<script>
 function formatLocal(date) {
   if (!date || isNaN(date.getTime())) return "";
 
