@@ -1577,12 +1577,19 @@ button{
 
 let items = [];
 
+function addItem() {
+  items.push({
+    width: 1,
+    height: 1,
+    qty: 1,
+    rate: 100,
+    total: 100
+  });
+  renderItems();
+}
+
 function updateItem(index, field, value) {
   items[index][field] = parseFloat(value) || 0;
-
-  const item = items[index];
-  item.total = item.width * item.height * item.qty * item.rate;
-
   renderItems();
 }
 
@@ -1591,60 +1598,44 @@ function removeItem(index) {
   renderItems();
 }
 
-function addItem() {
-  items.push({
-    width: 1,
-    height: 1,
-    qty: 1,
-    rate: 0,
-    total: 0
-  });
-  renderItems();
-}
-
 function renderItems() {
+
   const container = document.getElementById("itemsContainer");
   container.innerHTML = "";
 
   let grandTotal = 0;
 
-  items.forEach((item, index) => {
+  items.forEach(function(item, index) {
 
     item.total = item.width * item.height * item.qty * item.rate;
     grandTotal += item.total;
 
     container.innerHTML +=
-  '<div style="background:#1e293b;padding:15px;margin:10px 0;border-radius:8px;">' +
+      '<div style="background:#1e293b;padding:15px;margin:10px 0;border-radius:8px;">' +
 
-  'กว้าง:' +
-  '<input type="number" step="0.01" ' +
-  'value="' + item.width + '" ' +
-  'onchange="updateItem(' + index + ', \'width\', this.value)">' +
+      'กว้าง: ' +
+      '<input type="number" step="0.01" value="' + item.width + '" ' +
+      'onchange="updateItem(' + index + ', \'width\', this.value)"><br>' +
 
-  'สูง:' +
-  '<input type="number" step="0.01" ' +
-  'value="' + item.height + '" ' +
-  'onchange="updateItem(' + index + ', \'height\', this.value)">' +
+      'สูง: ' +
+      '<input type="number" step="0.01" value="' + item.height + '" ' +
+      'onchange="updateItem(' + index + ', \'height\', this.value)"><br>' +
 
-  'จำนวน:' +
-  '<input type="number" ' +
-  'value="' + item.qty + '" ' +
-  'onchange="updateItem(' + index + ', \'qty\', this.value)">' +
+      'จำนวน: ' +
+      '<input type="number" value="' + item.qty + '" ' +
+      'onchange="updateItem(' + index + ', \'qty\', this.value)"><br>' +
 
-  'ราคา/ตรม:' +
-  '<input type="number" ' +
-  'value="' + item.rate + '" ' +
-  'onchange="updateItem(' + index + ', \'rate\', this.value)">' +
+      'ราคา/ตรม: ' +
+      '<input type="number" value="' + item.rate + '" ' +
+      'onchange="updateItem(' + index + ', \'rate\', this.value)"><br><br>' +
 
-  '<br><br>' +
+      '<strong>รวม: ' + item.total.toFixed(2) + ' บาท</strong> ' +
 
-  '<strong>รวม: ' + item.total.toFixed(2) + ' บาท</strong>' +
+      '<button type="button" ' +
+      'onclick="removeItem(' + index + ')" ' +
+      'style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;margin-left:10px;">ลบ</button>' +
 
-  '<button type="button" ' +
-  'onclick="removeItem(' + index + ')" ' +
-  'style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;margin-left:10px;">ลบ</button>' +
-
-  '</div>';
+      '</div>';
   });
 
   document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
@@ -1652,8 +1643,9 @@ function renderItems() {
   document.getElementById("itemsInput").value = JSON.stringify(items);
 }
 
-addItem(); // เริ่มต้นมี 1 รายการ
 
+addItem(); // เริ่มต้นมี 1 รายการ
+renderItems();
 
 
 function formatLocal(date) {
