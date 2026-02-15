@@ -1652,7 +1652,6 @@ function renderItems() {
   document.getElementById("itemsInput").value = JSON.stringify(items);
 }
 
-addItem(); // เริ่มต้นมี 1 รายการ
 
 
 
