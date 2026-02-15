@@ -19,16 +19,11 @@ app.post('/add-job', async (req, res) => {
     console.log(req.body);
 
     // 🛑 เช็คก่อนว่า duetime มีค่าไหม
-   if (!customer || !jobType || !dueTime) {
-    return res.send("กรุณากรอกข้อมูลให้ครบ");
-  }
+  
 
   const parsedDate = new Date(dueTime);
 
-  if (isNaN(parsedDate.getTime())) {
-    return res.send("กรุณาเลือกวันเวลา");
-  }
-
+ 
   const thailandTime = new Date(dueTime + ":00+07:00");
 
 
