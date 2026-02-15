@@ -15,7 +15,9 @@ const supabase = createClient(
 
 //เพิ่มงาน
 app.post('/add-job', async (req, res) => {
-    const { customer, jobType, dueTime, status, note } = req.body;
+    const { customer, jobType, dueTime, status, note, price  } = req.body;
+
+
     console.log(req.body);
 
     // 🛑 เช็คก่อนว่า duetime มีค่าไหม
@@ -41,6 +43,7 @@ app.post('/add-job', async (req, res) => {
                 duetime: thailandTime.toISOString(),
                 status: "รอดำเนินการ",
                 note: note || null,
+                price: price || 0,
                 notified: false
                 
             }
@@ -1115,6 +1118,7 @@ app.get('/jobs', async (req, res) => {
         <div class="job-left">
           <strong>${job.customer}</strong>
           <div class="sub">${job.jobtype}</div>
+          <p>💰 ราคา: ${job.price ? job.price.toLocaleString() + " บาท" : "-"}</p>
           ${job.note ? `<div class="note">📝 ${job.note}</div>` : ""}
         </div>
 
@@ -1533,6 +1537,27 @@ button{
   <option>อื่นๆ</option>
 </select>
 
+<hr>
+
+<h3>💰 ประเมินราคา</h3>
+
+<label>กว้าง (เมตร)</label>
+<input type="number" step="0.01" id="width">
+
+<label>สูง (เมตร)</label>
+<input type="number" step="0.01" id="height">
+
+<label>ราคาต่อตร.ม.</label>
+<input type="number" id="pricePerSqm">
+
+<p>ราคาประเมิน: <span id="estimate">0</span> บาท</p>
+
+<label>ราคาสรุปสุดท้าย</label>
+<input type="number" name="price" id="finalPrice">
+
+
+
+
 <label>รายละเอียดเพิ่มเติม</label>
 <textarea name="note" rows="3" placeholder="หมายเหตุเพิ่มเติม (ถ้ามี)"></textarea>
 
@@ -1549,6 +1574,27 @@ button{
 
 </form>
 </div>
+
+<script>
+function calculatePrice() {
+  const w = parseFloat(document.getElementById("width").value) || 0;
+  const h = parseFloat(document.getElementById("height").value) || 0;
+  const rate = parseFloat(document.getElementById("pricePerSqm").value) || 0;
+
+  const total = w * h * rate;
+
+  document.getElementById("estimate").innerText = total.toFixed(2);
+  document.getElementById("finalPrice").value = total.toFixed(2);
+}
+
+document.getElementById("width").addEventListener("input", calculatePrice);
+document.getElementById("height").addEventListener("input", calculatePrice);
+document.getElementById("pricePerSqm").addEventListener("input", calculatePrice);
+</script>
+
+
+
+
 
 <script>
 function formatLocal(date) {
