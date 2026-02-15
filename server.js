@@ -1645,7 +1645,7 @@ function renderItems() {
 
 
 addItem(); // เริ่มต้นมี 1 รายการ
-renderItems();
+
 
 
 function formatLocal(date) {
