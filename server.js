@@ -1607,55 +1607,60 @@ function updateItem(index, field, value) {
 }
 
 function renderItems() {
+
   const container = document.getElementById("itemsContainer");
   container.innerHTML = "";
 
   let grandTotal = 0;
 
-  items.forEach((item, index) => {
+  items.forEach(function(item, index) {
+
+    // คำนวณ total ใหม่ทุกครั้งกันพลาด
+    item.total = (parseFloat(item.width || 0) *
+                  parseFloat(item.height || 0) *
+                  parseFloat(item.qty || 0) *
+                  parseFloat(item.rate || 0));
+
     grandTotal += item.total;
 
-    container.innerHTML += `
-      <div style="background:#1e293b;padding:10px;margin:10px 0;border-radius:8px;">
-        
-        กว้าง:
-        <input type="number" step="0.01"
-          value="${item.width}"
-          onchange="updateItem(${index}, 'width', this.value)">
+    container.innerHTML +=
+      '<div style="background:#1e293b;padding:15px;margin:10px 0;border-radius:10px;">' +
 
-        สูง:
-        <input type="number" step="0.01"
-          value="${item.height}"
-          onchange="updateItem(${index}, 'height', this.value)">
+        '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">' +
 
-        จำนวน:
-        <input type="number"
-          value="${item.qty}"
-          onchange="updateItem(${index}, 'qty', this.value)">
+          '<label>กว้าง</label>' +
+          '<input type="number" step="0.01" value="' + (item.width || 0) + '" ' +
+          'onchange="updateItem(' + index + ', \'width\', this.value)">' +
 
-        ราคา/ตรม:
-        <input type="number"
-          value="${item.rate}"
-          onchange="updateItem(${index}, 'rate', this.value)">
+          '<label>สูง</label>' +
+          '<input type="number" step="0.01" value="' + (item.height || 0) + '" ' +
+          'onchange="updateItem(' + index + ', \'height\', this.value)">' +
 
-        <br><br>
+          '<label>จำนวน</label>' +
+          '<input type="number" value="' + (item.qty || 1) + '" ' +
+          'onchange="updateItem(' + index + ', \'qty\', this.value)">' +
 
-        <strong>รวม: ${item.total.toFixed(2)} บาท</strong>
+          '<label>ราคา/ตรม.</label>' +
+          '<input type="number" value="' + (item.rate || 0) + '" ' +
+          'onchange="updateItem(' + index + ', \'rate\', this.value)">' +
 
-        <button type="button"
-          onclick="removeItem(${index})"
-          style="background:red;color:white;border:none;padding:5px 10px;border-radius:5px;">
-          ลบ
-        </button>
+        '</div>' +
 
-      </div>
-    `;
+        '<div style="margin-top:10px;font-weight:bold;">รวม: ' +
+        item.total.toFixed(2) + ' บาท</div>' +
+
+        '<button type="button" ' +
+        'onclick="removeItem(' + index + ')" ' +
+        'style="margin-top:8px;background:red;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;">ลบ</button>' +
+
+      '</div>';
   });
 
   document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
   document.getElementById("finalPrice").value = grandTotal.toFixed(2);
   document.getElementById("itemsInput").value = JSON.stringify(items);
 }
+
 
 
 addItem(); // เริ่มต้นมี 1 รายการ
