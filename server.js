@@ -1571,8 +1571,6 @@ button{
 </div>
 
 
-
-
 <script>
 
 let items = [];
@@ -1661,14 +1659,12 @@ function renderItems() {
 
 addItem(); // เริ่มต้นมี 1 รายการ
 
-</script>
 
 
 
 
 
 
-<script>
 function formatLocal(date) {
   if (!date || isNaN(date.getTime())) return "";
 
