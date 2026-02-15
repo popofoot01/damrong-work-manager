@@ -1517,7 +1517,7 @@ button{
 <div class="form-container">
 <h2>➕ เพิ่มงานใหม่</h2>
 
-<form method="POST" action="/">
+<form method="POST" action="/add-job">
 
 <label>ชื่อลูกค้า</label>
 <input name="customer" placeholder="เช่น คุณสมชาย" required autofocus />
