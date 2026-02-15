@@ -1548,7 +1548,7 @@ button{
 
 <div id="itemsContainer"></div>
 
-<button type="button" onclick="addItem()">➕ เพิ่มรายการ</button>
+<button type="button" class="quick-btn" onclick="addItem()">➕ เพิ่มรายการ</button>
 
 <h3>รวมทั้งหมด: <span id="grandTotal">0</span> บาท</h3>
 
