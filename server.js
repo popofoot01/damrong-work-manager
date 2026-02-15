@@ -19,11 +19,16 @@ app.post('/add-job', async (req, res) => {
     console.log(req.body);
 
     // 🛑 เช็คก่อนว่า duetime มีค่าไหม
-  
+   if (!customer || !jobType || !dueTime) {
+    return res.send("กรุณากรอกข้อมูลให้ครบ");
+  }
 
   const parsedDate = new Date(dueTime);
 
- 
+  if (isNaN(parsedDate.getTime())) {
+    return res.send("กรุณาเลือกวันเวลา");
+  }
+
   const thailandTime = new Date(dueTime + ":00+07:00");
 
 
@@ -1512,7 +1517,7 @@ button{
 <div class="form-container">
 <h2>➕ เพิ่มงานใหม่</h2>
 
-<form method="POST" action="/add-job">
+<form method="POST" action="/">
 
 <label>ชื่อลูกค้า</label>
 <input name="customer" placeholder="เช่น คุณสมชาย" required autofocus />
