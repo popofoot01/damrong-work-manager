@@ -1615,7 +1615,7 @@ function renderItems() {
   items.forEach((item, index) => {
     grandTotal += item.total;
 
-    container.innerHTML += 
+    container.innerHTML += `
       <div style="background:#1e293b;padding:10px;margin:10px 0;border-radius:8px;">
         
         กว้าง:
@@ -1649,7 +1649,7 @@ function renderItems() {
         </button>
 
       </div>
-    ;
+    `;
   });
 
   document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
