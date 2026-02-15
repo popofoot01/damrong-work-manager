@@ -1579,6 +1579,10 @@ let items = [];
 
 function updateItem(index, field, value) {
   items[index][field] = parseFloat(value) || 0;
+
+  const item = items[index];
+  item.total = item.width * item.height * item.qty * item.rate;
+
   renderItems();
 }
 
