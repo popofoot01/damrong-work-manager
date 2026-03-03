@@ -1606,31 +1606,6 @@ function updateItem(index, field, value) {
   renderItems();
 }
 
-function renderItems() {
-  const container = document.getElementById("itemsContainer");
-  container.innerHTML = "";
-
-  let grandTotal = 0;
-
-  items.forEach((item, index) => {
-    grandTotal += item.total;
-
-    container.innerHTML += 
-      <div style="background:#1e293b;padding:10px;margin:10px 0;border-radius:8px;">
-        กว้าง: <input type="number" step="0.01" 
-          onchange="updateItem(${index}, 'width', this.value)">
-        สูง: <input type="number" step="0.01" 
-          onchange="updateItem(${index}, 'height', this.value)">
-        จำนวน: <input type="number" 
-          onchange="updateItem(${index}, 'qty', this.value)">
-        ราคา/ตรม: <input type="number" 
-          onchange="updateItem(${index}, 'rate', this.value)">
-        <br>
-        รวม: ${item.total.toFixed(2)} บาท
-        <button type="button" onclick="removeItem(${index})">❌</button>
-      </div>
-    ;
-  });
 
   document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
   document.getElementById("finalPrice").value = grandTotal.toFixed(2);
