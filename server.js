@@ -1570,39 +1570,191 @@ button{
 </form>
 </div>
 
-
-
-
 <script>
+document.addEventListener("DOMContentLoaded", function(){
 
+  const container = document.getElementById("itemsContainer");
+  const grandTotalEl = document.getElementById("grandTotal");
+  const itemsInput = document.getElementById("itemsInput");
+  const finalPriceInput = document.getElementById("finalPrice");
 
-function formatLocal(date) {
-  if (!date || isNaN(date.getTime())) return "";
+  let items = [];
 
-  const pad = (n) => n.toString().padStart(2, '0');
+  // ===============================
+  // ====== ระบบเวลาด่วน ==========
+  // ===============================
 
-  return date.getFullYear() + "-" +
-         pad(date.getMonth()+1) + "-" +
-         pad(date.getDate()) + "T" +
-         pad(date.getHours()) + ":" +
-         pad(date.getMinutes());
-}
+  function formatLocal(date) {
+    if (!date || isNaN(date.getTime())) return "";
+    const pad = n => n.toString().padStart(2,'0');
 
-function setOneHour(){
-  let now = new Date();
-  now.setHours(now.getHours() + 1);
-  document.querySelector('[name="dueTime"]').value =
-    formatLocal(now);
-}
+    return date.getFullYear()+"-"+
+      pad(date.getMonth()+1)+"-"+
+      pad(date.getDate())+"T"+
+      pad(date.getHours())+":"+
+      pad(date.getMinutes());
+  }
 
-function setTomorrow(){
-  let t = new Date();
-  t.setDate(t.getDate()+1);
-  t.setHours(10);
-  t.setMinutes(0);
-  document.querySelector('[name="dueTime"]').value =
-    formatLocal(t);
-}
+  window.setOneHour = function(){
+    let now = new Date();
+    now.setHours(now.getHours()+1);
+    document.querySelector('[name="dueTime"]').value = formatLocal(now);
+  }
+
+  window.setTomorrow = function(){
+    let t = new Date();
+    t.setDate(t.getDate()+1);
+    t.setHours(10);
+    t.setMinutes(0);
+    document.querySelector('[name="dueTime"]').value = formatLocal(t);
+  }
+
+  // ===============================
+  // ====== ระบบรายการสินค้า ======
+  // ===============================
+
+  function calculate(item){
+    const w = parseFloat(item.width) || 0;
+    const h = parseFloat(item.height) || 0;
+    const qty = parseFloat(item.qty) || 0;
+    const rate = parseFloat(item.rate) || 0;
+
+    return w * h * qty * rate;
+  }
+
+  function createInput(labelText, placeholder, value, onChange){
+    const wrapper = document.createElement("div");
+    wrapper.style.marginBottom = "8px";
+
+    const label = document.createElement("div");
+    label.textContent = labelText;
+    label.style.fontSize = "13px";
+    label.style.opacity = "0.8";
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.step = "0.01";
+    input.placeholder = placeholder;
+    input.value = value || "";
+
+    input.addEventListener("input", onChange);
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(input);
+
+    return wrapper;
+  }
+
+  function createItemRow(item, index){
+    const div = document.createElement("div");
+    div.style.background = "#1e293b";
+    div.style.padding = "12px";
+    div.style.margin = "12px 0";
+    div.style.borderRadius = "10px";
+
+    const widthField = createInput(
+      "กว้าง (เมตร)",
+      "เช่น 1.2",
+      item.width,
+      e=>{
+        item.width = e.target.value;
+        render();
+      }
+    );
+
+    const heightField = createInput(
+      "สูง (เมตร)",
+      "เช่น 0.8",
+      item.height,
+      e=>{
+        item.height = e.target.value;
+        render();
+      }
+    );
+
+    const qtyField = createInput(
+      "จำนวน",
+      "1",
+      item.qty,
+      e=>{
+        item.qty = e.target.value;
+        render();
+      }
+    );
+
+    const rateField = createInput(
+      "ราคา / ตร.ม.",
+      "เช่น 350",
+      item.rate,
+      e=>{
+        item.rate = e.target.value;
+        render();
+      }
+    );
+
+    const totalText = document.createElement("div");
+    totalText.style.marginTop = "8px";
+    totalText.style.fontWeight = "bold";
+    totalText.textContent = "รวม: " + item.total.toFixed(2) + " บาท";
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.textContent = "ลบรายการ";
+    removeBtn.style.background = "#dc2626";
+    removeBtn.style.color = "white";
+    removeBtn.style.border = "none";
+    removeBtn.style.padding = "8px";
+    removeBtn.style.borderRadius = "6px";
+    removeBtn.style.marginTop = "8px";
+
+    removeBtn.addEventListener("click", ()=>{
+      items.splice(index,1);
+      render();
+    });
+
+    div.appendChild(widthField);
+    div.appendChild(heightField);
+    div.appendChild(qtyField);
+    div.appendChild(rateField);
+    div.appendChild(totalText);
+    div.appendChild(removeBtn);
+
+    return div;
+  }
+
+  function render(){
+    container.innerHTML = "";
+
+    let grandTotal = 0;
+
+    items.forEach((item, index)=>{
+      item.total = calculate(item);
+      grandTotal += item.total;
+
+      const row = createItemRow(item,index);
+      container.appendChild(row);
+    });
+
+    grandTotalEl.textContent = grandTotal.toFixed(2);
+    itemsInput.value = JSON.stringify(items);
+    finalPriceInput.value = grandTotal.toFixed(2);
+  }
+
+  window.addItem = function(){
+    items.push({
+      width:"",
+      height:"",
+      qty:1,
+      rate:"",
+      total:0
+    });
+    render();
+  }
+
+  // เริ่มต้นมี 1 รายการ
+  addItem();
+
+});
 </script>
 
 </body>
