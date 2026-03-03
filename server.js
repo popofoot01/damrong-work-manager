@@ -1575,47 +1575,6 @@ button{
 
 <script>
 
-let items = [];
-
-function addItem() {
-  items.push({
-    width: 0,
-    height: 0,
-    qty: 1,
-    rate: 0,
-    total: 0
-  });
-  renderItems();
-}
-
-function removeItem(index) {
-  items.splice(index, 1);
-  renderItems();
-}
-
-function updateItem(index, field, value) {
-  items[index][field] = parseFloat(value) || 0;
-
-  const w = items[index].width;
-  const h = items[index].height;
-  const qty = items[index].qty;
-  const rate = items[index].rate;
-
-  items[index].total = w * h * rate * qty;
-
-  renderItems();
-}
-
-
-  document.getElementById("grandTotal").innerText = grandTotal.toFixed(2);
-  document.getElementById("finalPrice").value = grandTotal.toFixed(2);
-  document.getElementById("itemsInput").value = JSON.stringify(items);
-}
-
-addItem(); // เริ่มต้นมี 1 รายการ
-
-
-
 
 function formatLocal(date) {
   if (!date || isNaN(date.getTime())) return "";
