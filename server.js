@@ -1571,6 +1571,7 @@ button{
 </div>
 
 <script>
+
 document.addEventListener("DOMContentLoaded", function(){
 
   const container = document.getElementById("itemsContainer");
@@ -1588,11 +1589,8 @@ document.addEventListener("DOMContentLoaded", function(){
     if (!date || isNaN(date.getTime())) return "";
     const pad = n => n.toString().padStart(2,'0');
 
-    return date.getFullYear()+"-"+
-      pad(date.getMonth()+1)+"-"+
-      pad(date.getDate())+"T"+
-      pad(date.getHours())+":"+
-      pad(date.getMinutes());
+    return date.getFullYear()+"-"+pad(date.getMonth()+1)+"-"+pad(date.getDate())+
+           "T"+pad(date.getHours())+":"+pad(date.getMinutes());
   }
 
   window.setOneHour = function(){
@@ -1610,19 +1608,54 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 
   // ===============================
-  // ====== ระบบรายการสินค้า ======
+  // ====== ระบบคำนวณราคา =========
   // ===============================
 
   function calculate(item){
-    const w = parseFloat(item.width) || 0;
-    const h = parseFloat(item.height) || 0;
+
+    let w = parseFloat(item.width) || 0;
+    let h = parseFloat(item.height) || 0;
+
+    // แปลง cm -> m
+    if(item.unit === "cm"){
+      w = w / 100;
+      h = h / 100;
+    }
+
     const qty = parseFloat(item.qty) || 0;
     const rate = parseFloat(item.rate) || 0;
 
     return w * h * qty * rate;
   }
 
-  function createInput(labelText, placeholder, value, onChange){
+  function updateTotals(){
+
+    let grandTotal = 0;
+
+    items.forEach(item => {
+
+      item.total = calculate(item);
+      grandTotal += item.total;
+
+      if(item.totalEl){
+        item.totalEl.textContent =
+          "รวม: " + item.total.toFixed(2) + " บาท";
+      }
+
+    });
+
+    grandTotalEl.textContent = grandTotal.toFixed(2);
+    itemsInput.value = JSON.stringify(items);
+    finalPriceInput.value = grandTotal.toFixed(2);
+
+  }
+
+  // ===============================
+  // ====== สร้าง input field ======
+  // ===============================
+
+  function createInput(labelText, placeholder, value){
+
     const wrapper = document.createElement("div");
     wrapper.style.marginBottom = "8px";
 
@@ -1637,66 +1670,94 @@ document.addEventListener("DOMContentLoaded", function(){
     input.placeholder = placeholder;
     input.value = value || "";
 
-    input.addEventListener("input", onChange);
-
     wrapper.appendChild(label);
     wrapper.appendChild(input);
 
-    return wrapper;
+    return {wrapper,input};
+
   }
 
-  function createItemRow(item, index){
+  // ===============================
+  // ====== สร้างรายการสินค้า =====
+  // ===============================
+
+  function createItemRow(item,index){
+
     const div = document.createElement("div");
     div.style.background = "#1e293b";
     div.style.padding = "12px";
     div.style.margin = "12px 0";
     div.style.borderRadius = "10px";
 
-    const widthField = createInput(
-      "กว้าง (เมตร)",
-      "เช่น 1.2",
-      item.width,
-      e=>{
-        item.width = e.target.value;
-        render();
-      }
-    );
+    // กว้าง
+    const widthField = createInput("กว้าง","เช่น 120",item.width);
+    widthField.input.addEventListener("input", e=>{
+      item.width = e.target.value;
+      updateTotals();
+    });
 
-    const heightField = createInput(
-      "สูง (เมตร)",
-      "เช่น 0.8",
-      item.height,
-      e=>{
-        item.height = e.target.value;
-        render();
-      }
-    );
+    // สูง
+    const heightField = createInput("สูง","เช่น 80",item.height);
+    heightField.input.addEventListener("input", e=>{
+      item.height = e.target.value;
+      updateTotals();
+    });
 
-    const qtyField = createInput(
-      "จำนวน",
-      "1",
-      item.qty,
-      e=>{
-        item.qty = e.target.value;
-        render();
-      }
-    );
+    // หน่วย
+    const unitWrapper = document.createElement("div");
+    unitWrapper.style.marginBottom = "8px";
 
-    const rateField = createInput(
-      "ราคา / ตร.ม.",
-      "เช่น 350",
-      item.rate,
-      e=>{
-        item.rate = e.target.value;
-        render();
-      }
-    );
+    const unitLabel = document.createElement("div");
+    unitLabel.textContent = "หน่วย";
+    unitLabel.style.fontSize = "13px";
+    unitLabel.style.opacity = "0.8";
 
+    const unitSelect = document.createElement("select");
+
+    const optionM = document.createElement("option");
+    optionM.value = "m";
+    optionM.textContent = "เมตร";
+
+    const optionCM = document.createElement("option");
+    optionCM.value = "cm";
+    optionCM.textContent = "เซนติเมตร";
+
+    unitSelect.appendChild(optionM);
+    unitSelect.appendChild(optionCM);
+
+    unitSelect.value = item.unit;
+
+    unitSelect.addEventListener("change", e=>{
+      item.unit = e.target.value;
+      updateTotals();
+    });
+
+    unitWrapper.appendChild(unitLabel);
+    unitWrapper.appendChild(unitSelect);
+
+    // จำนวน
+    const qtyField = createInput("จำนวน","1",item.qty);
+    qtyField.input.addEventListener("input", e=>{
+      item.qty = e.target.value;
+      updateTotals();
+    });
+
+    // ราคา
+    const rateField = createInput("ราคา / ตร.ม.","เช่น 350",item.rate);
+    rateField.input.addEventListener("input", e=>{
+      item.rate = e.target.value;
+      updateTotals();
+    });
+
+    // รวม
     const totalText = document.createElement("div");
     totalText.style.marginTop = "8px";
     totalText.style.fontWeight = "bold";
-    totalText.textContent = "รวม: " + item.total.toFixed(2) + " บาท";
+    totalText.textContent = "รวม: 0 บาท";
 
+    item.totalEl = totalText;
+
+    // ปุ่มลบ
     const removeBtn = document.createElement("button");
     removeBtn.type = "button";
     removeBtn.textContent = "ลบรายการ";
@@ -1712,49 +1773,58 @@ document.addEventListener("DOMContentLoaded", function(){
       render();
     });
 
-    div.appendChild(widthField);
-    div.appendChild(heightField);
-    div.appendChild(qtyField);
-    div.appendChild(rateField);
+    div.appendChild(widthField.wrapper);
+    div.appendChild(heightField.wrapper);
+    div.appendChild(unitWrapper);
+    div.appendChild(qtyField.wrapper);
+    div.appendChild(rateField.wrapper);
     div.appendChild(totalText);
     div.appendChild(removeBtn);
 
     return div;
   }
 
+  // ===============================
+  // ====== render รายการ =========
+  // ===============================
+
   function render(){
+
     container.innerHTML = "";
 
-    let grandTotal = 0;
-
-    items.forEach((item, index)=>{
-      item.total = calculate(item);
-      grandTotal += item.total;
-
+    items.forEach((item,index)=>{
       const row = createItemRow(item,index);
       container.appendChild(row);
     });
 
-    grandTotalEl.textContent = grandTotal.toFixed(2);
-    itemsInput.value = JSON.stringify(items);
-    finalPriceInput.value = grandTotal.toFixed(2);
+    updateTotals();
+
   }
 
+  // ===============================
+  // ====== เพิ่มรายการ ===========
+  // ===============================
+
   window.addItem = function(){
+
     items.push({
       width:"",
       height:"",
+      unit:"cm",
       qty:1,
       rate:"",
       total:0
     });
+
     render();
+
   }
 
   // เริ่มต้นมี 1 รายการ
   addItem();
 
 });
+
 </script>
 
 </body>
