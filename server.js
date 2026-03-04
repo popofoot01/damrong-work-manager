@@ -1628,13 +1628,26 @@ document.addEventListener("DOMContentLoaded", function(){
     return w * h * qty * rate;
   }
 
+      function roundPrice(price){
+
+  const lastDigit = price % 10;
+
+  if(lastDigit <= 4.9){
+    return price - lastDigit;
+  }else{
+    return price + (10 - lastDigit);
+  }
+
+}
+
+
   function updateTotals(){
 
     let grandTotal = 0;
 
     items.forEach(item => {
 
-      item.total = calculate(item);
+      item.total = roundPrice(calculate(item));
       grandTotal += item.total;
 
       if(item.totalEl){
