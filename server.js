@@ -466,13 +466,22 @@ app.get('/completed', async (req, res) => {
   <script>
 
   function searchJobs(){
+
     let input = document.getElementById("search").value.toLowerCase();
     let rows = document.getElementsByClassName("card");
 
     for(let i=0;i<rows.length;i++){
+
       let text = rows[i].innerText.toLowerCase();
-      rows[i].style.display = text.includes(input) ? "block" : "none";
+
+      if(text.includes(input)){
+        rows[i].style.display = "block";
+      }else{
+        rows[i].style.display = "none";
+      }
+
     }
+
   }
 
   </script>
@@ -483,7 +492,7 @@ app.get('/completed', async (req, res) => {
 
   <h1>✅ งานที่เสร็จแล้ว</h1>
 
-  <a href="/">← กลับหน้าหลัก</a>
+  <a href="/jobs">← กลับหน้างานทั้งหมด</a>
 
   <div class="summary">
 
@@ -533,7 +542,7 @@ app.get('/completed', async (req, res) => {
       <input
         id="search"
         onkeyup="searchJobs()"
-        placeholder="ค้นหาลูกค้า / ประเภท / ราคา"
+        placeholder="ค้นหาลูกค้า / ประเภท / ราคา / วันที่"
       >
 
       ${jobs.map(renderRow).join("")}
@@ -3077,3 +3086,5 @@ app.get('/api/check-reminder', async (req, res) => {
 app.listen(3000, () => {
     console.log('Server running at http://localhost:3000');
 });
+
+//git add .   /git commit -m "update" /git push
