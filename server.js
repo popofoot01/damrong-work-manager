@@ -2228,7 +2228,7 @@ app.get('/jobs', async (req, res) => {
   }
 
   .menu-btn{
-    background:#1e293b;
+    background:#ab0505;
     padding:14px;
     border-radius:10px;
     text-align:center;
@@ -2238,7 +2238,7 @@ app.get('/jobs', async (req, res) => {
   }
 
   .menu-btn:hover{
-    background:#ebe125;
+    background:#2563eb;
   }
 
   .summary{
