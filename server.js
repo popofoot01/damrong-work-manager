@@ -2238,7 +2238,7 @@ app.get('/jobs', async (req, res) => {
   }
 
   .menu-btn:hover{
-    background:#2563eb;
+    background:#ebe125;
   }
 
   .summary{
