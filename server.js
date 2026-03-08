@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
+const QRCode = require('qrcode');
 
 const app = express();
 app.use(express.json());
@@ -2685,6 +2686,17 @@ button{
 
 <label>วิธีชำระ</label>
 <select name="payment_method" id="payment_method">
+    <div id="qr-payment" style="display:none;margin-top:15px">
+
+<button type="button" onclick="createQR()">
+📱 สร้าง QR สำหรับโอน
+</button>
+
+<div id="qrBox" style="margin-top:10px;text-align:center"></div>
+
+<div id="qrTimer" style="text-align:center;margin-top:8px"></div>
+
+</div>
 <option value="cash">เงินสด</option>
 <option value="transfer">โอน</option>
 </select>
@@ -3153,6 +3165,82 @@ document.getElementById("remainingPayment").innerText = remain;
 }
 
 
+document
+.getElementById("payment_method")
+.addEventListener("change",function(){
+
+if(this.value==="transfer"){
+document.getElementById("qr-payment").style.display="block";
+}else{
+document.getElementById("qr-payment").style.display="none";
+}
+
+});
+
+
+function createQR(){
+
+const amount =
+parseFloat(document.getElementById("paid_amount").value)||0;
+
+if(amount<=0){
+alert("กรุณาใส่จำนวนเงินก่อน");
+return;
+}
+
+fetch('/api/create-qr',{
+method:'POST',
+headers:{
+'Content-Type':'application/json'
+},
+body:JSON.stringify({amount:amount})
+})
+.then(res=>res.json())
+.then(data=>{
+
+if(data.success){
+
+document.getElementById("qrBox").innerHTML=
+'<img src="'+data.qr+'" width="220">';
+
+startQRCountdown();
+
+}
+
+});
+
+}
+
+
+function startQRCountdown(){
+
+let time=300;
+
+const timer=document.getElementById("qrTimer");
+
+const interval=setInterval(()=>{
+
+time--;
+
+let m=Math.floor(time/60);
+let s=time%60;
+
+timer.innerText=
+"QR หมดเวลาใน "+
+m+":"+String(s).padStart(2,'0');
+
+if(time<=0){
+
+clearInterval(interval);
+
+timer.innerText="QR หมดอายุ กรุณาสร้างใหม่";
+
+}
+
+},1000);
+
+}
+
 
 </script>
 
@@ -3244,6 +3332,36 @@ app.get('/api/check-reminder', async (req, res) => {
 
   res.send("checked");
 });
+
+
+app.post('/api/create-qr', async (req, res) => {
+
+const { amount } = req.body;
+
+const promptpay = "0812345678"; // เปลี่ยนเป็นเบอร์ร้าน
+
+const payload =
+`00020101021129370016A00000067701011101130066${promptpay}5802TH530376454${amount}6304`;
+
+try{
+
+const qr = await QRCode.toDataURL(payload);
+
+res.json({
+success:true,
+qr:qr
+});
+
+}catch(err){
+
+res.json({
+success:false
+});
+
+}
+
+});
+
 
 app.listen(3000, () => {
     console.log('Server running at http://localhost:3000');
