@@ -289,12 +289,11 @@ app.get('/completed', async (req, res) => {
 
     let items = [];
 
-    if(Array.isArray(job.items)){
+    if(Array.isArray(job.items))
       items = job.items;
-    }else{
-      try{
-        items = JSON.parse(job.items);
-      }catch{}
+    else{
+      try{ items = JSON.parse(job.items); }
+      catch{}
     }
 
     return items;
@@ -312,27 +311,20 @@ app.get('/completed', async (req, res) => {
 
       let size = "";
 
-      if(i.width && i.height){
+      if(i.width && i.height)
         size = i.width + "×" + i.height + (i.unit || "");
-      }
 
       html += `
       <div class="item-row">
         <span>${i.type || ""}</span>
         <span>${size}</span>
-        <span class="price">
-          ${i.total ? i.total.toLocaleString() + " บาท" : ""}
-        </span>
+        <span class="price">${i.total ? i.total.toLocaleString()+" บาท":""}</span>
       </div>
       `;
 
     });
 
-    return `
-    <div class="item-box">
-      ${html}
-    </div>
-    `;
+    return `<div class="item-box">${html}</div>`;
   }
 
   function renderRow(job){
@@ -340,7 +332,9 @@ app.get('/completed', async (req, res) => {
     const items = parseItems(job);
 
     return `
-    <div class="card">
+    <div class="card"
+      data-date="${job.duetime.slice(0,10)}"
+      data-time="${new Date(job.duetime).getTime()}">
 
       <div class="header">
         <strong>${job.customer}</strong>
@@ -353,7 +347,7 @@ app.get('/completed', async (req, res) => {
       ${renderItems(job)}
 
       <div class="total">
-        💰 ${job.price ? job.price.toLocaleString() + " บาท" : ""}
+        💰 ${job.price ? job.price.toLocaleString()+" บาท":""}
       </div>
 
     </div>
@@ -361,6 +355,7 @@ app.get('/completed', async (req, res) => {
   }
 
   res.send(`
+
   <html>
   <head>
 
@@ -377,13 +372,9 @@ app.get('/completed', async (req, res) => {
     padding:20px;
   }
 
-  h1{
-    margin-bottom:10px;
-  }
+  h1{margin-bottom:10px}
 
-  a{
-    color:#38bdf8;
-  }
+  a{color:#38bdf8}
 
   .summary{
     display:grid;
@@ -443,9 +434,7 @@ app.get('/completed', async (req, res) => {
     border-bottom:1px dashed #475569;
   }
 
-  .price{
-    color:#facc15;
-  }
+  .price{color:#facc15}
 
   .total{
     margin-top:6px;
@@ -461,24 +450,82 @@ app.get('/completed', async (req, res) => {
     margin-bottom:10px;
   }
 
+  .filter-buttons button{
+    margin:4px;
+    padding:6px 10px;
+    border:none;
+    border-radius:6px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+  }
+
   </style>
 
   <script>
 
   function searchJobs(){
 
-    let input = document.getElementById("search").value.toLowerCase();
-    let rows = document.getElementsByClassName("card");
+    const keyword =
+      document.getElementById("search")
+      .value.toLowerCase();
+
+    const rows =
+      document.getElementsByClassName("card");
 
     for(let i=0;i<rows.length;i++){
 
-      let text = rows[i].innerText.toLowerCase();
+      const text =
+        rows[i].innerText.toLowerCase();
 
-      if(text.includes(input)){
+      rows[i].style.display =
+        text.includes(keyword)
+        ? "block"
+        : "none";
+
+    }
+
+  }
+
+  function searchByDate(){
+
+    const selected =
+      document.getElementById("dateSearch").value;
+
+    const rows =
+      document.getElementsByClassName("card");
+
+    for(let i=0;i<rows.length;i++){
+
+      const date =
+        rows[i].getAttribute("data-date");
+
+      if(!selected || date === selected)
         rows[i].style.display = "block";
-      }else{
+      else
         rows[i].style.display = "none";
-      }
+
+    }
+
+  }
+
+  function quickFilter(days){
+
+    const now = Date.now();
+    const limit = days * 86400000;
+
+    const rows =
+      document.getElementsByClassName("card");
+
+    for(let i=0;i<rows.length;i++){
+
+      const t =
+        parseInt(rows[i].getAttribute("data-time"));
+
+      if(now - t <= limit)
+        rows[i].style.display="block";
+      else
+        rows[i].style.display="none";
 
     }
 
@@ -496,30 +543,15 @@ app.get('/completed', async (req, res) => {
 
   <div class="summary">
 
-    <div>
-      🔥 งานวันนี้<br>
-      <strong>${todayJobs.length}</strong>
-    </div>
+    <div>🔥 งานวันนี้<br><strong>${todayJobs.length}</strong></div>
 
-    <div>
-      📅 งานเมื่อวาน<br>
-      <strong>${yesterdayJobs.length}</strong>
-    </div>
+    <div>📅 งานเมื่อวาน<br><strong>${yesterdayJobs.length}</strong></div>
 
-    <div>
-      💰 รายได้วันนี้<br>
-      <strong>${revenueToday.toLocaleString()}</strong>
-    </div>
+    <div>💰 รายได้วันนี้<br><strong>${revenueToday.toLocaleString()}</strong></div>
 
-    <div>
-      💰 รายได้เมื่อวาน<br>
-      <strong>${revenueYesterday.toLocaleString()}</strong>
-    </div>
+    <div>💰 รายได้เมื่อวาน<br><strong>${revenueYesterday.toLocaleString()}</strong></div>
 
-    <div>
-      📦 งานเสร็จทั้งหมด<br>
-      <strong>${jobs.length}</strong>
-    </div>
+    <div>📦 งานเสร็จทั้งหมด<br><strong>${jobs.length}</strong></div>
 
   </div>
 
@@ -542,8 +574,21 @@ app.get('/completed', async (req, res) => {
       <input
         id="search"
         onkeyup="searchJobs()"
-        placeholder="ค้นหาลูกค้า / ประเภท / ราคา / วันที่"
+        placeholder="ค้นหาลูกค้า / ประเภท / ราคา"
       >
+
+      <input
+        type="date"
+        id="dateSearch"
+        onchange="searchByDate()"
+      >
+
+      <div class="filter-buttons">
+        <button onclick="quickFilter(1)">วันนี้</button>
+        <button onclick="quickFilter(2)">เมื่อวาน</button>
+        <button onclick="quickFilter(7)">7 วัน</button>
+        <button onclick="quickFilter(30)">30 วัน</button>
+      </div>
 
       ${jobs.map(renderRow).join("")}
 
@@ -553,6 +598,7 @@ app.get('/completed', async (req, res) => {
 
   </body>
   </html>
+
   `);
 
 });
