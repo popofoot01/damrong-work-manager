@@ -1040,14 +1040,14 @@ app.get('/monitor', async (req, res) => {
     const diff = new Date(dt) - now;
     const min = Math.floor(diff / 60000);
 
-    if(min <= 0) return "🔴 เลยเวลา";
+    if(min <= 0) return "เลยเวลา";
 
-    if(min < 60) return "🟠 เหลือ "+min+" นาที";
+    if(min < 60) return "เหลือ "+min+" นาที";
 
     const h = Math.floor(min/60);
     const m = min%60;
 
-    return "⏳ "+h+"ชม "+m+"น";
+    return h+"ชม "+m+"น";
 
   }
 
@@ -1085,16 +1085,21 @@ app.get('/monitor', async (req, res) => {
     const due = new Date(job.duetime);
     const diff = (due - now)/60000;
 
-    let extra = "";
+    let colorClass = "";
 
-    if(job.status === "กำลังทำ") extra = "blue";
-    if(diff <= 60 && diff > 0) extra = "orange";
-    if(diff <= 0) extra = "red";
+    if(job.status === "กำลังทำ")
+      colorClass = "working";
+
+    else if(diff <= 0)
+      colorClass = "late";
+
+    else if(diff <= 60)
+      colorClass = "urgent";
 
     const items = parseItems(job);
 
     return `
-    <div class="card ${extra}">
+    <div class="card ${colorClass}">
 
       <div class="header">
         <strong>${job.customer}</strong>
@@ -1103,7 +1108,7 @@ app.get('/monitor', async (req, res) => {
       </div>
 
       <div class="time">
-        ${countdown(job.duetime)}
+        ⏱ ${countdown(job.duetime)}
       </div>
 
       ${items.length ? `<div class="count">📦 ${items.length} รายการ</div>` : ""}
@@ -1116,7 +1121,6 @@ app.get('/monitor', async (req, res) => {
 
     </div>
     `;
-
   }
 
   res.send(`
@@ -1183,6 +1187,23 @@ app.get('/monitor', async (req, res) => {
     border-radius:8px;
   }
 
+  .working{
+    background:#065f46;
+    animation:greenblink 1s infinite;
+  }
+
+  @keyframes greenblink{
+    50%{background:#10b981;}
+  }
+
+  .urgent{
+    background:#854d0e;
+  }
+
+  .late{
+    background:#7f1d1d;
+  }
+
   .header{
     display:flex;
     justify-content:space-between;
@@ -1220,10 +1241,6 @@ app.get('/monitor', async (req, res) => {
     color:#22c55e;
   }
 
-  .blue{background:#1e3a8a;}
-  .orange{background:#7c2d12;}
-  .red{background:#7f1d1d;}
-
   </style>
 
   <script>
@@ -1251,8 +1268,8 @@ app.get('/monitor', async (req, res) => {
     <div>📅 วันนี้ ${todayJobs.length}</div>
     <div>📅 พรุ่งนี้ ${tomorrowJobs.length}</div>
     <div>🟡 รอดำเนินการ ${pending}</div>
-    <div>🔵 กำลังทำ ${working}</div>
-    <div>🟢 เสร็จแล้ว ${completed}</div>
+    <div>🟢 กำลังทำ ${working}</div>
+    <div>🔵 เสร็จแล้ว ${completed}</div>
     <div>📦 ยังไม่เสร็จ ${notFinished}</div>
   </div>
 
@@ -1281,7 +1298,6 @@ app.get('/monitor', async (req, res) => {
   `);
 
 });
-
 
 
 
