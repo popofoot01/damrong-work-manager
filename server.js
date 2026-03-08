@@ -3344,7 +3344,7 @@ app.post('/api/create-qr', async (req, res) => {
 
 const { amount } = req.body;
 
-const account = "0528857965"; // บัญชี Zack
+const account = "1250400241681"; // บัญชี Zack
 
 try{
 
