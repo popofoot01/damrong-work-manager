@@ -2941,7 +2941,7 @@ container.innerHTML="";
 items.forEach((item,index)=>{
 
 const div=document.createElement("div");
-div.style.background="#1e293b";
+div.style.background="#007c34";
 div.style.padding="12px";
 div.style.margin="12px 0";
 div.style.borderRadius="10px";
