@@ -1353,7 +1353,7 @@ app.get('/jobs', async (req, res) => {
   );
 
   /* =========================
-     สรุป Dashboard
+     SUMMARY
   ========================= */
 
   let totalItems = 0;
@@ -1364,48 +1364,56 @@ app.get('/jobs', async (req, res) => {
     if (job.price)
       totalRevenue += job.price;
 
-    if (job.items) {
+    let items = [];
+
+    if (Array.isArray(job.items)) {
+      items = job.items;
+    } else {
       try {
-        const items = JSON.parse(job.items);
-        totalItems += items.length;
-      } catch { }
+        items = JSON.parse(job.items);
+      } catch {}
     }
+
+    totalItems += items.length;
 
   });
 
   /* =========================
-     Render Row
+     RENDER ROW
   ========================= */
 
   function renderRow(job) {
 
+    let items = [];
     let itemsHtml = "";
     let itemCount = 0;
 
-    if (job.items) {
+    if (Array.isArray(job.items)) {
+      items = job.items;
+    } else {
       try {
-        const items = JSON.parse(job.items);
-
-        itemCount = items.length;
-
-        itemsHtml = items.map(i => {
-
-          const size = (i.width && i.height)
-            ? ` ${i.width}x${i.height}${i.unit || ""}`
-            : "";
-
-          return `
-            <div class="item-line">
-              • ${i.type || "-"}${size}
-              <span class="item-price">
-                ${i.total ? i.total.toLocaleString() + " บาท" : ""}
-              </span>
-            </div>
-          `;
-        }).join("");
-
-      } catch { }
+        items = JSON.parse(job.items);
+      } catch {}
     }
+
+    itemCount = items.length;
+
+    itemsHtml = items.map(i => {
+
+      const size =
+        (i.width && i.height)
+          ? `${i.width} × ${i.height} ${i.unit || ""}`
+          : "";
+
+      return `
+        <div class="item-line">
+          <span>• ${i.type || "-"} ${size}</span>
+          <span class="item-price">
+            ${i.total ? i.total.toLocaleString() + " บาท" : ""}
+          </span>
+        </div>
+      `;
+    }).join("");
 
     return `
       <div class="job-row">
@@ -1453,7 +1461,6 @@ app.get('/jobs', async (req, res) => {
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>งานทั้งหมด</title>
 
   <style>
@@ -1488,8 +1495,6 @@ app.get('/jobs', async (req, res) => {
   .menu-btn:hover{
     background:#2563eb;
   }
-
-  /* Dashboard */
 
   .summary{
     display:grid;
