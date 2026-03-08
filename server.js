@@ -14,9 +14,22 @@ const supabase = createClient(
 );
 
 //เพิ่มงาน
+/*app.post('/add-job', async (req, res) => {
+    const { customer, jobType, dueTime, status, note, price, items} = req.body;*/
 app.post('/add-job', async (req, res) => {
-    const { customer, jobType, dueTime, status, note, price, items} = req.body;
 
+const {
+customer,
+jobType,
+dueTime,
+status,
+note,
+price,
+items,
+payment_status,
+payment_method,
+paid_amount
+} = req.body;
 
     console.log(req.body);
 
@@ -36,7 +49,7 @@ app.post('/add-job', async (req, res) => {
 
     const { error } = await supabase
         .from('jobs')
-        .insert([
+        /*.insert([
             {
                 customer: customer,
                 jobtype: jobType,   // ต้องเป็น jobType ตรงนี้
@@ -48,7 +61,24 @@ app.post('/add-job', async (req, res) => {
                 notified: false
                 
             }
-        ]);
+        ]);*/
+        .insert([
+{
+customer: customer,
+jobtype: jobType,
+duetime: thailandTime.toISOString(),
+status: "รอดำเนินการ",
+note: note || null,
+price: price || 0,
+items: items ? JSON.parse(items) : null,
+notified: false,
+
+payment_status: payment_status || "unpaid",
+payment_method: payment_method || null,
+paid_amount: paid_amount || 0
+
+}
+])
 
     if (error) {
         console.error(error);
@@ -2642,6 +2672,38 @@ button{
 
 <h3>รวมทั้งหมด: <span id="grandTotal">0</span> บาท</h3>
 
+<hr>
+
+<h3>💳 การชำระเงิน</h3>
+
+<label>สถานะการจ่าย</label>
+<select name="payment_status" id="payment_status">
+<option value="unpaid">ยังไม่จ่าย</option>
+<option value="deposit">มัดจำ</option>
+<option value="paid">จ่ายเต็ม</option>
+</select>
+
+<label>วิธีชำระ</label>
+<select name="payment_method" id="payment_method">
+<option value="cash">เงินสด</option>
+<option value="transfer">โอน</option>
+</select>
+
+<label>จำนวนที่จ่าย</label>
+<input
+type="number"
+name="paid_amount"
+id="paid_amount"
+value="0"
+oninput="updatePayment()"
+/>
+
+<div style="margin-bottom:15px;">
+คงเหลือ :
+<strong id="remainingPayment">0</strong>
+บาท
+</div>
+
 <input type="hidden" name="items" id="itemsInput">
 <input type="hidden" name="price" id="finalPrice">
 
@@ -3074,6 +3136,24 @@ finalPriceInput.value=grand;
 }
 
 });
+
+
+function updatePayment(){
+
+const total =
+parseFloat(document.getElementById("grandTotal").innerText) || 0;
+
+const paid =
+parseFloat(document.getElementById("paid_amount").value) || 0;
+
+const remain = total - paid;
+
+document.getElementById("remainingPayment").innerText = remain;
+
+}
+
+
+
 </script>
 
 </body>
