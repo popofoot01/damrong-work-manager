@@ -1063,7 +1063,7 @@ app.get('/monitor', async (req, res) => {
     </html>
     `);
 }); */ 
-app.get('/jobs', async (req, res) => {
+/*app.get('/jobs', async (req, res) => {
 
   const selectedDate = req.query.date || "";
 
@@ -1301,6 +1301,346 @@ app.get('/jobs', async (req, res) => {
   </body>
   </html>
   `);
+});*/
+
+app.get('/jobs', async (req, res) => {
+
+  const selectedDate = req.query.date || "";
+
+  let query = supabase
+    .from('jobs')
+    .select('*')
+    .eq('is_deleted', false)
+    .neq('status', 'เสร็จแล้ว')
+    .order('duetime', { ascending: true });
+
+  if (selectedDate) {
+    const start = new Date(selectedDate);
+    const end = new Date(selectedDate);
+    end.setDate(end.getDate() + 1);
+
+    query = query
+      .gte('duetime', start.toISOString())
+      .lt('duetime', end.toISOString());
+  }
+
+  const { data: jobs, error } = await query;
+  if (error) return res.send("โหลดข้อมูลไม่สำเร็จ");
+
+  const now = new Date();
+
+  function isSameDate(d1, d2) {
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+    );
+  }
+
+  function formatDateTime(dt) {
+    return new Date(dt).toLocaleString("th-TH", {
+      timeZone: "Asia/Bangkok",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    });
+  }
+
+  const todayJobs = jobs.filter(j =>
+    isSameDate(new Date(j.duetime), now)
+  );
+
+  /* =========================
+     สรุป Dashboard
+  ========================= */
+
+  let totalItems = 0;
+  let totalRevenue = 0;
+
+  jobs.forEach(job => {
+
+    if (job.price)
+      totalRevenue += job.price;
+
+    if (job.items) {
+      try {
+        const items = JSON.parse(job.items);
+        totalItems += items.length;
+      } catch { }
+    }
+
+  });
+
+  /* =========================
+     Render Row
+  ========================= */
+
+  function renderRow(job) {
+
+    let itemsHtml = "";
+    let itemCount = 0;
+
+    if (job.items) {
+      try {
+        const items = JSON.parse(job.items);
+
+        itemCount = items.length;
+
+        itemsHtml = items.map(i => {
+
+          const size = (i.width && i.height)
+            ? ` ${i.width}x${i.height}${i.unit || ""}`
+            : "";
+
+          return `
+            <div class="item-line">
+              • ${i.type || "-"}${size}
+              <span class="item-price">
+                ${i.total ? i.total.toLocaleString() + " บาท" : ""}
+              </span>
+            </div>
+          `;
+        }).join("");
+
+      } catch { }
+    }
+
+    return `
+      <div class="job-row">
+
+        <div class="job-left">
+
+          <strong>${job.customer}</strong>
+          <div class="sub">${job.jobtype}</div>
+
+          ${itemCount ? `<div class="item-count">📦 ${itemCount} รายการ</div>` : ""}
+
+          <div class="item-list">
+            ${itemsHtml}
+          </div>
+
+          <div class="job-total">
+            💰 รวม: ${job.price ? job.price.toLocaleString() + " บาท" : "-"}
+          </div>
+
+          ${job.note ? `<div class="note">📝 ${job.note}</div>` : ""}
+
+        </div>
+
+        <div class="job-mid">
+          🗓 ${formatDateTime(job.duetime)}
+        </div>
+
+        <div class="job-right">
+          <form method="POST" action="/update-status">
+            <input type="hidden" name="id" value="${job.id}">
+            <select name="status" onchange="this.form.submit()">
+              <option value="รอดำเนินการ" ${job.status === "รอดำเนินการ" ? "selected" : ""}>รอดำเนินการ</option>
+              <option value="กำลังทำ" ${job.status === "กำลังทำ" ? "selected" : ""}>กำลังทำ</option>
+              <option value="เสร็จแล้ว">เสร็จแล้ว</option>
+            </select>
+          </form>
+        </div>
+
+      </div>
+    `;
+  }
+
+  res.send(`
+  <html>
+  <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>งานทั้งหมด</title>
+
+  <style>
+
+  body{
+    margin:0;
+    background:#0f172a;
+    color:white;
+    font-family:Arial;
+    padding:20px;
+  }
+
+  h1{margin-bottom:10px}
+
+  .top-menu{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap:10px;
+    margin-bottom:20px;
+  }
+
+  .menu-btn{
+    background:#1e293b;
+    padding:14px;
+    border-radius:10px;
+    text-align:center;
+    font-weight:bold;
+    text-decoration:none;
+    color:white;
+  }
+
+  .menu-btn:hover{
+    background:#2563eb;
+  }
+
+  /* Dashboard */
+
+  .summary{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:10px;
+    margin-bottom:20px;
+  }
+
+  .card{
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+  }
+
+  .card strong{
+    font-size:22px;
+  }
+
+  .columns{
+    display:grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap:20px;
+  }
+
+  .section{
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+  }
+
+  .job-row{
+    background:#334155;
+    margin-bottom:10px;
+    padding:12px;
+    border-radius:8px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .job-left{flex:2}
+
+  .job-mid{
+    flex:1;
+    font-size:13px;
+    color:#cbd5e1
+  }
+
+  .job-right{flex:1}
+
+  .sub{
+    font-size:13px;
+    color:#94a3b8
+  }
+
+  .note{
+    font-size:13px;
+    color:#facc15;
+    margin-top:4px
+  }
+
+  .item-count{
+    font-size:13px;
+    color:#38bdf8;
+    margin-top:5px
+  }
+
+  .item-list{
+    margin-top:5px;
+    font-size:13px;
+  }
+
+  .item-line{
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px dashed #475569;
+    padding:2px 0;
+  }
+
+  .item-price{
+    color:#facc15;
+  }
+
+  .job-total{
+    margin-top:6px;
+    font-weight:bold;
+  }
+
+  @media(max-width:768px){
+    .columns{grid-template-columns:1fr}
+  }
+
+  </style>
+
+  </head>
+
+  <body>
+
+  <h1>📋 งานทั้งหมด</h1>
+
+  <div class="top-menu">
+    <a class="menu-btn" href="/">➕ เพิ่มงาน</a>
+    <a class="menu-btn" href="/completed">✅ งานเสร็จแล้ว</a>
+    <a class="menu-btn" href="/deleted">🗑 งานที่ถูกลบ</a>
+    <a class="menu-btn" href="/monitor">📺 มอนิเตอร์</a>
+  </div>
+
+  <div class="summary">
+
+    <div class="card">
+      <div>🔥 งานวันนี้</div>
+      <strong>${todayJobs.length}</strong>
+    </div>
+
+    <div class="card">
+      <div>📋 งานทั้งหมด</div>
+      <strong>${jobs.length}</strong>
+    </div>
+
+    <div class="card">
+      <div>📦 รายการทั้งหมด</div>
+      <strong>${totalItems}</strong>
+    </div>
+
+    <div class="card">
+      <div>💰 รายได้รวม</div>
+      <strong>${totalRevenue.toLocaleString()}</strong>
+    </div>
+
+  </div>
+
+  <div class="columns">
+
+    <div class="section">
+      <h2>🔥 งานวันนี้</h2>
+      ${todayJobs.map(renderRow).join("") || "ไม่มีงานวันนี้"}
+    </div>
+
+    <div class="section">
+      <h2>📋 งานทั้งหมดที่ยังไม่เสร็จ</h2>
+      ${jobs.map(renderRow).join("") || "ไม่มีงานค้าง"}
+    </div>
+
+  </div>
+
+  </body>
+  </html>
+  `);
+
 });
 
 
