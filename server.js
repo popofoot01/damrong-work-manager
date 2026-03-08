@@ -2,9 +2,11 @@ if (process.env.NODE_ENV !== 'production') {
   require('dotenv').config();
 }
 
+
 const express = require('express');
 const axios = require('axios');
 const QRCode = require('qrcode');
+const generatePayload = require('promptpay-qr');
 
 const app = express();
 app.use(express.json());
@@ -3342,12 +3344,13 @@ app.post('/api/create-qr', async (req, res) => {
 
 const { amount } = req.body;
 
-const promptpay = "0812345678"; // เปลี่ยนเป็นเบอร์ร้าน
-
-const payload =
-`00020101021129370016A00000067701011101130066${promptpay}5802TH530376454${amount}6304`;
+const account = "0528857965"; // บัญชี Zack
 
 try{
+
+const payload = generatePayload(account, {
+amount: parseFloat(amount)
+});
 
 const qr = await QRCode.toDataURL(payload);
 
@@ -3357,6 +3360,8 @@ qr:qr
 });
 
 }catch(err){
+
+console.error(err);
 
 res.json({
 success:false
