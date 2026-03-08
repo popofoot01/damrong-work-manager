@@ -181,7 +181,7 @@ app.get('/deleted', async (req, res) => {
 
 
 //หน้างานสำเร็จ
-app.get('/completed', async (req, res) => {
+/*app.get('/completed', async (req, res) => {
 
     const { data: jobs, error } = await supabase
         .from('jobs')
@@ -231,6 +231,321 @@ app.get('/completed', async (req, res) => {
         <br><br>
         ${jobCards || "ไม่มีข้อมูล"}
     `);
+});*/
+app.get('/completed', async (req, res) => {
+
+  const { data: jobs, error } = await supabase
+    .from('jobs')
+    .select('*')
+    .eq('is_deleted', false)
+    .eq('status', 'เสร็จแล้ว')
+    .order('duetime', { ascending: false });
+
+  if (error) return res.send("โหลดข้อมูลไม่สำเร็จ");
+
+  const now = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+
+  function isSameDate(d1, d2){
+    return (
+      d1.getFullYear() === d2.getFullYear() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getDate() === d2.getDate()
+    );
+  }
+
+  const todayJobs = jobs.filter(j =>
+    isSameDate(new Date(j.duetime), now)
+  );
+
+  const yesterdayJobs = jobs.filter(j =>
+    isSameDate(new Date(j.duetime), yesterday)
+  );
+
+  let revenueToday = 0;
+  let revenueYesterday = 0;
+
+  todayJobs.forEach(j=>{
+    if(j.price) revenueToday += j.price;
+  });
+
+  yesterdayJobs.forEach(j=>{
+    if(j.price) revenueYesterday += j.price;
+  });
+
+  function formatDateTime(dt){
+    return new Date(dt).toLocaleString("th-TH", {
+      timeZone:"Asia/Bangkok",
+      day:"numeric",
+      month:"short",
+      year:"numeric",
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+  }
+
+  function parseItems(job){
+
+    let items = [];
+
+    if(Array.isArray(job.items)){
+      items = job.items;
+    }else{
+      try{
+        items = JSON.parse(job.items);
+      }catch{}
+    }
+
+    return items;
+  }
+
+  function renderItems(job){
+
+    const items = parseItems(job);
+
+    if(!items.length) return "";
+
+    let html = "";
+
+    items.forEach(i => {
+
+      let size = "";
+
+      if(i.width && i.height){
+        size = i.width + "×" + i.height + (i.unit || "");
+      }
+
+      html += `
+      <div class="item-row">
+        <span>${i.type || ""}</span>
+        <span>${size}</span>
+        <span class="price">
+          ${i.total ? i.total.toLocaleString() + " บาท" : ""}
+        </span>
+      </div>
+      `;
+
+    });
+
+    return `
+    <div class="item-box">
+      ${html}
+    </div>
+    `;
+  }
+
+  function renderRow(job){
+
+    const items = parseItems(job);
+
+    return `
+    <div class="card">
+
+      <div class="header">
+        <strong>${job.customer}</strong>
+        <span>${job.jobtype}</span>
+        <span>${formatDateTime(job.duetime)}</span>
+      </div>
+
+      ${items.length ? `<div class="count">📦 ${items.length} รายการ</div>` : ""}
+
+      ${renderItems(job)}
+
+      <div class="total">
+        💰 ${job.price ? job.price.toLocaleString() + " บาท" : ""}
+      </div>
+
+    </div>
+    `;
+  }
+
+  res.send(`
+  <html>
+  <head>
+
+  <meta charset="UTF-8">
+  <title>งานที่เสร็จแล้ว</title>
+
+  <style>
+
+  body{
+    margin:0;
+    background:#0f172a;
+    color:white;
+    font-family:Arial;
+    padding:20px;
+  }
+
+  h1{
+    margin-bottom:10px;
+  }
+
+  a{
+    color:#38bdf8;
+  }
+
+  .summary{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:10px;
+    margin:20px 0;
+  }
+
+  .summary div{
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+    font-weight:bold;
+  }
+
+  .columns{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:20px;
+  }
+
+  .section{
+    background:#1e293b;
+    padding:15px;
+    border-radius:10px;
+    max-height:80vh;
+    overflow:auto;
+  }
+
+  .card{
+    background:#334155;
+    margin:10px 0;
+    padding:12px;
+    border-radius:8px;
+  }
+
+  .header{
+    display:flex;
+    justify-content:space-between;
+    font-weight:bold;
+  }
+
+  .count{
+    margin-top:6px;
+    color:#38bdf8;
+  }
+
+  .item-box{
+    margin-top:6px;
+    font-size:13px;
+  }
+
+  .item-row{
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px dashed #475569;
+  }
+
+  .price{
+    color:#facc15;
+  }
+
+  .total{
+    margin-top:6px;
+    font-weight:bold;
+    color:#22c55e;
+  }
+
+  input{
+    width:100%;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+    margin-bottom:10px;
+  }
+
+  </style>
+
+  <script>
+
+  function searchJobs(){
+    let input = document.getElementById("search").value.toLowerCase();
+    let rows = document.getElementsByClassName("card");
+
+    for(let i=0;i<rows.length;i++){
+      let text = rows[i].innerText.toLowerCase();
+      rows[i].style.display = text.includes(input) ? "block" : "none";
+    }
+  }
+
+  </script>
+
+  </head>
+
+  <body>
+
+  <h1>✅ งานที่เสร็จแล้ว</h1>
+
+  <a href="/">← กลับหน้าหลัก</a>
+
+  <div class="summary">
+
+    <div>
+      🔥 งานวันนี้<br>
+      <strong>${todayJobs.length}</strong>
+    </div>
+
+    <div>
+      📅 งานเมื่อวาน<br>
+      <strong>${yesterdayJobs.length}</strong>
+    </div>
+
+    <div>
+      💰 รายได้วันนี้<br>
+      <strong>${revenueToday.toLocaleString()}</strong>
+    </div>
+
+    <div>
+      💰 รายได้เมื่อวาน<br>
+      <strong>${revenueYesterday.toLocaleString()}</strong>
+    </div>
+
+    <div>
+      📦 งานเสร็จทั้งหมด<br>
+      <strong>${jobs.length}</strong>
+    </div>
+
+  </div>
+
+  <div class="columns">
+
+    <div class="section">
+      <h2>🔥 วันนี้</h2>
+      ${todayJobs.map(renderRow).join("") || "ไม่มีงาน"}
+    </div>
+
+    <div class="section">
+      <h2>📅 เมื่อวาน</h2>
+      ${yesterdayJobs.map(renderRow).join("") || "ไม่มีงาน"}
+    </div>
+
+    <div class="section">
+
+      <h2>🔎 ค้นหา</h2>
+
+      <input
+        id="search"
+        onkeyup="searchJobs()"
+        placeholder="ค้นหาลูกค้า / ประเภท / ราคา"
+      >
+
+      ${jobs.map(renderRow).join("")}
+
+    </div>
+
+  </div>
+
+  </body>
+  </html>
+  `);
+
 });
 
 
