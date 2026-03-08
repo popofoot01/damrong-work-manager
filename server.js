@@ -1,4 +1,7 @@
-require('dotenv').config();
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const express = require('express');
 const axios = require('axios');
 const QRCode = require('qrcode');
@@ -3364,8 +3367,10 @@ success:false
 });
 
 
-app.listen(3000, () => {
+/*app.listen(3000, () => {
     console.log('Server running at http://localhost:3000');
-});
+});*/
+module.exports = app;
+
 
 //git add .   /git commit -m "update" /git push
