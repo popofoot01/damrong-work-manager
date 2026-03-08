@@ -2686,7 +2686,11 @@ button{
 
 <label>วิธีชำระ</label>
 <select name="payment_method" id="payment_method">
-    <div id="qr-payment" style="display:none;margin-top:15px">
+<option value="cash">เงินสด</option>
+<option value="transfer">โอน</option>
+</select>
+
+<div id="qr-payment" style="display:none;margin-top:15px">
 
 <button type="button" onclick="createQR()">
 📱 สร้าง QR สำหรับโอน
@@ -2697,9 +2701,6 @@ button{
 <div id="qrTimer" style="text-align:center;margin-top:8px"></div>
 
 </div>
-<option value="cash">เงินสด</option>
-<option value="transfer">โอน</option>
-</select>
 
 <label>จำนวนที่จ่าย</label>
 <input
