@@ -332,7 +332,32 @@ app.get('/completed', async (req, res) => {
     const items = parseItems(job);
 
     return `
-    <div class="card"
+    <div class="card">
+
+      <div class="header">
+        <strong>${job.customer}</strong>
+        <span>${job.jobtype}</span>
+        <span>${formatDateTime(job.duetime)}</span>
+      </div>
+
+      ${items.length ? `<div class="count">📦 ${items.length} รายการ</div>` : ""}
+
+      ${renderItems(job)}
+
+      <div class="total">
+        💰 ${job.price ? job.price.toLocaleString()+" บาท":""}
+      </div>
+
+    </div>
+    `;
+  }
+
+  function renderRowSearch(job){
+
+    const items = parseItems(job);
+
+    return `
+    <div class="card search-card"
       data-date="${job.duetime.slice(0,10)}"
       data-time="${new Date(job.duetime).getTime()}">
 
@@ -356,250 +381,261 @@ app.get('/completed', async (req, res) => {
 
   res.send(`
 
-  <html>
-  <head>
-
-  <meta charset="UTF-8">
-  <title>งานที่เสร็จแล้ว</title>
-
-  <style>
-
-  body{
-    margin:0;
-    background:#0f172a;
-    color:white;
-    font-family:Arial;
-    padding:20px;
-  }
-
-  h1{margin-bottom:10px}
-
-  a{color:#38bdf8}
-
-  .summary{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-    gap:10px;
-    margin:20px 0;
-  }
-
-  .summary div{
-    background:#1e293b;
-    padding:15px;
-    border-radius:10px;
-    text-align:center;
-    font-weight:bold;
-  }
-
-  .columns{
-    display:grid;
-    grid-template-columns:1fr 1fr 1fr;
-    gap:20px;
-  }
-
-  .section{
-    background:#1e293b;
-    padding:15px;
-    border-radius:10px;
-    max-height:80vh;
-    overflow:auto;
-  }
-
-  .card{
-    background:#334155;
-    margin:10px 0;
-    padding:12px;
-    border-radius:8px;
-  }
-
-  .header{
-    display:flex;
-    justify-content:space-between;
-    font-weight:bold;
-  }
-
-  .count{
-    margin-top:6px;
-    color:#38bdf8;
-  }
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>งานที่เสร็จแล้ว</title>
+
+<style>
+
+body{
+margin:0;
+background:#0f172a;
+color:white;
+font-family:Arial;
+padding:20px;
+}
+
+a{color:#38bdf8}
+
+.summary{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+gap:10px;
+margin:20px 0;
+}
+
+.summary div{
+background:#1e293b;
+padding:15px;
+border-radius:10px;
+text-align:center;
+font-weight:bold;
+}
+
+.columns{
+display:grid;
+grid-template-columns:1fr 1fr 1fr;
+gap:20px;
+}
+
+.section{
+background:#1e293b;
+padding:15px;
+border-radius:10px;
+max-height:80vh;
+overflow:auto;
+}
+
+.card{
+background:#334155;
+margin:10px 0;
+padding:12px;
+border-radius:8px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+font-weight:bold;
+}
+
+.count{
+margin-top:6px;
+color:#38bdf8;
+}
 
-  .item-box{
-    margin-top:6px;
-    font-size:13px;
-  }
+.item-box{
+margin-top:6px;
+font-size:13px;
+}
+
+.item-row{
+display:flex;
+justify-content:space-between;
+border-bottom:1px dashed #475569;
+}
 
-  .item-row{
-    display:flex;
-    justify-content:space-between;
-    border-bottom:1px dashed #475569;
-  }
+.price{color:#facc15}
 
-  .price{color:#facc15}
+.total{
+margin-top:6px;
+font-weight:bold;
+color:#22c55e;
+}
 
-  .total{
-    margin-top:6px;
-    font-weight:bold;
-    color:#22c55e;
-  }
+input{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:none;
+margin-bottom:10px;
+}
 
-  input{
-    width:100%;
-    padding:10px;
-    border-radius:8px;
-    border:none;
-    margin-bottom:10px;
-  }
+.filter-buttons button{
+margin:4px;
+padding:6px 10px;
+border:none;
+border-radius:6px;
+background:#2563eb;
+color:white;
+cursor:pointer;
+}
 
-  .filter-buttons button{
-    margin:4px;
-    padding:6px 10px;
-    border:none;
-    border-radius:6px;
-    background:#2563eb;
-    color:white;
-    cursor:pointer;
-  }
+</style>
 
-  </style>
+<script>
 
-  <script>
+function searchJobs(){
 
-  function searchJobs(){
+const keyword =
+document.getElementById("search").value.toLowerCase();
 
-    const keyword =
-      document.getElementById("search")
-      .value.toLowerCase();
+const rows =
+document.getElementsByClassName("search-card");
 
-    const rows =
-      document.getElementsByClassName("card");
+for(let i=0;i<rows.length;i++){
 
-    for(let i=0;i<rows.length;i++){
+const text =
+rows[i].innerText.toLowerCase();
 
-      const text =
-        rows[i].innerText.toLowerCase();
+rows[i].style.display =
+text.includes(keyword)
+? "block"
+: "none";
 
-      rows[i].style.display =
-        text.includes(keyword)
-        ? "block"
-        : "none";
+}
 
-    }
+}
 
-  }
+function searchByDate(){
 
-  function searchByDate(){
+const selected =
+document.getElementById("dateSearch").value;
 
-    const selected =
-      document.getElementById("dateSearch").value;
+const rows =
+document.getElementsByClassName("search-card");
 
-    const rows =
-      document.getElementsByClassName("card");
+for(let i=0;i<rows.length;i++){
 
-    for(let i=0;i<rows.length;i++){
+const date =
+rows[i].getAttribute("data-date");
 
-      const date =
-        rows[i].getAttribute("data-date");
+rows[i].style.display =
+(!selected || date === selected)
+? "block"
+: "none";
 
-      if(!selected || date === selected)
-        rows[i].style.display = "block";
-      else
-        rows[i].style.display = "none";
+}
 
-    }
+}
 
-  }
+function quickFilter(days){
 
-  function quickFilter(days){
+const now = Date.now();
+const limit = days * 86400000;
 
-    const now = Date.now();
-    const limit = days * 86400000;
+const rows =
+document.getElementsByClassName("search-card");
 
-    const rows =
-      document.getElementsByClassName("card");
+for(let i=0;i<rows.length;i++){
 
-    for(let i=0;i<rows.length;i++){
+const t =
+parseInt(rows[i].getAttribute("data-time"));
 
-      const t =
-        parseInt(rows[i].getAttribute("data-time"));
+rows[i].style.display =
+(now - t <= limit)
+? "block"
+: "none";
 
-      if(now - t <= limit)
-        rows[i].style.display="block";
-      else
-        rows[i].style.display="none";
+}
 
-    }
+}
 
-  }
+function resetFilter(){
 
-  </script>
+document.getElementById("search").value="";
+document.getElementById("dateSearch").value="";
 
-  </head>
+const rows =
+document.getElementsByClassName("search-card");
 
-  <body>
+for(let i=0;i<rows.length;i++)
+rows[i].style.display="block";
 
-  <h1>✅ งานที่เสร็จแล้ว</h1>
+}
 
-  <a href="/jobs">← กลับหน้างานทั้งหมด</a>
+</script>
 
-  <div class="summary">
+</head>
 
-    <div>🔥 งานวันนี้<br><strong>${todayJobs.length}</strong></div>
+<body>
 
-    <div>📅 งานเมื่อวาน<br><strong>${yesterdayJobs.length}</strong></div>
+<h1>✅ งานที่เสร็จแล้ว</h1>
 
-    <div>💰 รายได้วันนี้<br><strong>${revenueToday.toLocaleString()}</strong></div>
+<a href="/jobs">← กลับหน้างานทั้งหมด</a>
 
-    <div>💰 รายได้เมื่อวาน<br><strong>${revenueYesterday.toLocaleString()}</strong></div>
+<div class="summary">
 
-    <div>📦 งานเสร็จทั้งหมด<br><strong>${jobs.length}</strong></div>
+<div>🔥 งานวันนี้<br><strong>${todayJobs.length}</strong></div>
 
-  </div>
+<div>📅 งานเมื่อวาน<br><strong>${yesterdayJobs.length}</strong></div>
 
-  <div class="columns">
+<div>💰 รายได้วันนี้<br><strong>${revenueToday.toLocaleString()}</strong></div>
 
-    <div class="section">
-      <h2>🔥 วันนี้</h2>
-      ${todayJobs.map(renderRow).join("") || "ไม่มีงาน"}
-    </div>
+<div>💰 รายได้เมื่อวาน<br><strong>${revenueYesterday.toLocaleString()}</strong></div>
 
-    <div class="section">
-      <h2>📅 เมื่อวาน</h2>
-      ${yesterdayJobs.map(renderRow).join("") || "ไม่มีงาน"}
-    </div>
+<div>📦 งานเสร็จทั้งหมด<br><strong>${jobs.length}</strong></div>
 
-    <div class="section">
+</div>
 
-      <h2>🔎 ค้นหา</h2>
+<div class="columns">
 
-      <input
-        id="search"
-        onkeyup="searchJobs()"
-        placeholder="ค้นหาลูกค้า / ประเภท / ราคา"
-      >
+<div class="section">
+<h2>🔥 วันนี้</h2>
+${todayJobs.map(renderRow).join("") || "ไม่มีงาน"}
+</div>
 
-      <input
-        type="date"
-        id="dateSearch"
-        onchange="searchByDate()"
-      >
+<div class="section">
+<h2>📅 เมื่อวาน</h2>
+${yesterdayJobs.map(renderRow).join("") || "ไม่มีงาน"}
+</div>
 
-      <div class="filter-buttons">
-        <button onclick="quickFilter(1)">วันนี้</button>
-        <button onclick="quickFilter(2)">เมื่อวาน</button>
-        <button onclick="quickFilter(7)">7 วัน</button>
-        <button onclick="quickFilter(30)">30 วัน</button>
-      </div>
+<div class="section">
 
-      ${jobs.map(renderRow).join("")}
+<h2>🔎 ค้นหา</h2>
 
-    </div>
+<input
+id="search"
+onkeyup="searchJobs()"
+placeholder="ค้นหาลูกค้า / ประเภท / ราคา"
+/>
 
-  </div>
+<input
+type="date"
+id="dateSearch"
+onchange="searchByDate()"
+/>
 
-  </body>
-  </html>
+<div class="filter-buttons">
+<button onclick="quickFilter(1)">วันนี้</button>
+<button onclick="quickFilter(2)">เมื่อวาน</button>
+<button onclick="quickFilter(7)">7 วัน</button>
+<button onclick="quickFilter(30)">30 วัน</button>
+<button onclick="resetFilter()">ล้าง</button>
+</div>
 
-  `);
+${jobs.map(renderRowSearch).join("")}
+
+</div>
+
+</div>
+
+</body>
+</html>
+
+`);
 
 });
 
